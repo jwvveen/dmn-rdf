@@ -67,8 +67,8 @@ merged the IRIs do not resolve yet). Design notes: [DESIGN.md](DESIGN.md).
   property gets `dmn:position`.
 * **FEEL stays text; a fragment of S-FEEL is analysed.** A cell keeps its FEEL
   text. The checker analyses a documented fragment (comparisons, intervals,
-  lists, `not`, `-`) and never treats an unsupported expression as matching
-  anything: a rule pair with such a cell is not compared, the table is not
+  lists, `not`, `-`) and makes no assumption about whether an unsupported
+  expression matches: a rule pair with such a cell is not compared, the table is not
   searched for gaps, and the report says how many cells were not analysed. A
   result without findings is only complete for a fully analysed table. For
   strings without declared input values, gaps are sought only among the values

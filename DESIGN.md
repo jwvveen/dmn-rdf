@@ -70,8 +70,8 @@ entries, whose order FEEL relies on.
 * **Not analysed.** Names (`> Maximum`), functions, filters, paths, arithmetic,
   `null`, time, date and time, durations, and a cell whose type differs from
   its column. Each is reported once per table with the first reason.
-* **Effect of a cell that is not analysed.** It is never treated as matching
-  anything. A rule pair in which either rule contains such a cell, in any
+* **Effect of a cell that is not analysed.** The checker makes no assumption
+  about whether it matches. A rule pair in which either rule contains such a cell, in any
   column, is not compared; a table with such a cell is not searched for gaps or
   masked rules. The table gets one result with the number of cells and the
   first reason, not one result per skipped pair. A result without findings is
