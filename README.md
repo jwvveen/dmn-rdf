@@ -65,12 +65,14 @@ merged the IRIs do not resolve yet). Design notes: [DESIGN.md](DESIGN.md).
 * **Order is data.** RDF has no order and DMN needs it: the rules of a FIRST
   table, the entry that belongs to each clause. Every value of an ordered
   property gets `dmn:position`.
-* **FEEL stays text; S-FEEL is computed.** A cell keeps its FEEL text. The
-  checker decides what S-FEEL can decide (comparisons, intervals, lists, `not`,
-  `-`) and reports what it could not analyse: a cell with a name, a function or
-  full FEEL is left out of the overlap test, its table is not searched for gaps,
-  and the report says how many cells were left out. A result without findings is
-  only complete for a table without such cells.
+* **FEEL stays text; a fragment of S-FEEL is analysed.** A cell keeps its FEEL
+  text. The checker analyses a documented fragment (comparisons, intervals,
+  lists, `not`, `-`) and never treats an unsupported expression as matching
+  anything: a rule pair with such a cell is not compared, the table is not
+  searched for gaps, and the report says how many cells were not analysed. A
+  result without findings is only complete for a fully analysed table. For
+  strings without declared input values, gaps are sought only among the values
+  the table mentions.
 * **SHACL where SHACL can, a checker where it cannot,** with one report format.
 * **Four languages.** Every message in English, Dutch, German and French.
 

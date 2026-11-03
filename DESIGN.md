@@ -70,21 +70,25 @@ entries, whose order FEEL relies on.
 * **Not analysed.** Names (`> Maximum`), functions, filters, paths, arithmetic,
   `null`, time, date and time, durations, and a cell whose type differs from
   its column. Each is reported once per table with the first reason.
-* **Effect of a cell that is not analysed.** It takes no part in the overlap
-  test (the pair is skipped), and a table with such a cell is not searched for
-  gaps or masked rules. A result without findings is therefore only complete
-  for a table without such cells.
+* **Effect of a cell that is not analysed.** It is never treated as matching
+  anything. A rule pair in which either rule contains such a cell, in any
+  column, is not compared; a table with such a cell is not searched for gaps or
+  masked rules. The table gets one result with the number of cells and the
+  first reason, not one result per skipped pair. A result without findings is
+  therefore only complete for a table without such cells.
 * **Gaps** are computed against the declared input values of a column, when
   there are any. Otherwise: the whole number line or calendar for numbers and
   dates, true and false for booleans, and the values the table itself mentions
-  for strings. Missing values (null) are not part of any domain.
+  for strings. For strings without declared input values, gap analysis is
+  therefore restricted to those values and cannot establish completeness over
+  all possible strings. Missing values (null) are not part of any domain.
 * **ANY**: two overlapping rules conflict when both output entries are literals
   and differ. Outputs that are not literals are not compared.
 * **FIRST**: a rule is reported as never applying when the earlier rules
   together cover every input it covers, computed over the elementary pieces of
   each column's domain. Above 50,000 combinations the search stops and says so.
-* **What a clean result means.** Within the analysed fragment and the declared
-  input domains, an overlap-free result establishes that no two rules match the
+* **What a clean result means.** For a fully analysed table, within the stated
+  analysis domain, an overlap-free result establishes that no two rules match the
   same input. It does not establish completeness, and nothing here establishes
   legal correctness.
 
