@@ -1,0 +1,66 @@
+@prefix dmn:   <https://w3id.org/dmn#> .
+@prefix dmnsh: <https://w3id.org/dmn/shapes#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:   <http://purl.org/dc/terms/> .
+
+#################################################################
+# DMN 1.6 in RDF: one generic constraint over Table 2.
+#
+# Every requirement in a model is checked against the cells of
+# dmn-matrix.ttl: the requiring element, the required element and the
+# kind of requirement must match a permitted cell. The rule lives in
+# the data, not in this shape: a corrected table needs no new shape.
+#
+# This is the check the XML schema does not make. DMN16.xsd accepts an
+# authority requirement from a Decision or Input Data to a Decision or
+# a Business Knowledge Model; Table 2 and Table 22 forbid it.
+#
+# The cell is looked up by its IRI (dmn:req-<required>-<requiring>, set by
+# scripts/genereer_dmn_matrix_ttl.py), not by its properties: rdflib puts a
+# pattern like `?cel dmn:requiredType ?t` first and walks every cell for
+# every requirement (525 s for one example model instead of a second).
+# For the same reason the owner and the target are matched with property
+# paths and not with UNION blocks: rdflib evaluates each UNION block without
+# the pre-bound $this that pyshacl passes in (100 s per requirement).
+# The shape targets the model (dmn:Definitions) and reports the requirement
+# as sh:value: one query per model instead of one per requirement.
+#################################################################
+
+<https://w3id.org/dmn/shapes/matrix>
+    a owl:Ontology ;
+    rdfs:label "DMN 1.6 in RDF: requirements matrix shape"@en ;
+    owl:imports <https://w3id.org/dmn/matrix> ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    owl:versionInfo "0.1.0" ;
+    sh:declare [ sh:prefix "dmn" ; sh:namespace "https://w3id.org/dmn#"^^xsd:anyURI ] .
+
+dmnsh:RequirementMatrixShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:Definitions ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This requirement is not permitted between these two kinds of element according to Table 2 of DMN 1.6 (clause 6.2.3), even if the XML schema accepts it."@en ,
+                   "Deze vereiste is volgens Tabel 2 van DMN 1.6 (clausule 6.2.3) niet toegestaan tussen deze twee soorten elementen, ook al accepteert het XML-schema hem."@nl ,
+                   "Diese Anforderung ist nach Tabelle 2 von DMN 1.6 (Abschnitt 6.2.3) zwischen diesen beiden Elementarten nicht erlaubt, auch wenn das XML-Schema sie akzeptiert."@de ,
+                   "Cette exigence n'est pas autorisée entre ces deux types d'éléments selon le tableau 2 de DMN 1.6 (clause 6.2.3), même si le schéma XML l'accepte."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes/matrix> ;
+        sh:select """
+            SELECT $this (?vereiste AS ?value) WHERE {
+                $this dmn:drgElement ?eigenaar .
+                ?eigenaar (dmn:informationRequirement|dmn:knowledgeRequirement|dmn:authorityRequirement) ?vereiste .
+                ?vereiste (dmn:requiredDecision|dmn:requiredInput|dmn:requiredKnowledge|dmn:requiredAuthority) ?vereist .
+                ?vereiste a ?soort .
+                ?eigenaar a ?teigen .
+                ?vereist a ?tvereist .
+                FILTER (?soort IN (dmn:InformationRequirement, dmn:KnowledgeRequirement, dmn:AuthorityRequirement))
+                FILTER (?teigen IN (dmn:Decision, dmn:BusinessKnowledgeModel, dmn:DecisionService, dmn:InputData, dmn:KnowledgeSource))
+                FILTER (?tvereist IN (dmn:Decision, dmn:BusinessKnowledgeModel, dmn:DecisionService, dmn:InputData, dmn:KnowledgeSource))
+                BIND (IRI(CONCAT("https://w3id.org/dmn#req-", STRAFTER(STR(?tvereist), "#"), "-",
+                                 STRAFTER(STR(?teigen), "#"))) AS ?cel)
+                FILTER NOT EXISTS { ?cel dmn:requirementType ?soort ; dmn:permitted true . }
+            }
+        """ ;
+    ] .

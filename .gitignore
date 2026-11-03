@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+# Local copies of the OMG files and earlier vocabularies: downloaded, not redistributed
+sources/.cache/

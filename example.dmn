@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A small DMN 1.6 model that is wrong on purpose (fictional: a municipal
+  parking permit). Every mistake shows one check:
+
+  1. An authority requirement from one decision to another. DMN16.xsd
+     accepts it; Table 2 forbids it.               RequirementMatrixShape
+  2. A UNIQUE table whose rules 1 and 2 overlap.   UniqueOverlap
+  3. The same table has no rule for visitors with a petrol or diesel car.  Gap
+  4. A FIRST table whose rule 3 can never apply.   MaskedRule
+  5. An output entry outside the output values.    OutputOutsideOutputValues
+  6. A sum over a UNIQUE table.                    AggregationShape
+  7. A decision whose variable has another name.   VariableNameShape
+  8. A cell that names another value: not decided. NotDecided
+-->
+<definitions xmlns="https://www.omg.org/spec/DMN/20240513/MODEL/"
+             id="parking" name="Parking permit" namespace="https://example.org/parking">
+
+  <inputData id="residency" name="Residency">
+    <variable id="v-residency" name="Residency" typeRef="string"/>
+  </inputData>
+  <inputData id="carType" name="Car type">
+    <variable id="v-carType" name="Car type" typeRef="string"/>
+  </inputData>
+  <inputData id="cars" name="Cars on address">
+    <variable id="v-cars" name="Cars on address" typeRef="number"/>
+  </inputData>
+
+  <knowledgeSource id="bylaw" name="Parking bylaw">
+    <type>bylaw</type>
+  </knowledgeSource>
+
+  <decision id="eligible" name="Eligible">
+    <variable id="v-eligible" name="Eligible" typeRef="boolean"/>
+    <informationRequirement id="ir1"><requiredInput href="#residency"/></informationRequirement>
+    <informationRequirement id="ir2"><requiredInput href="#carType"/></informationRequirement>
+    <authorityRequirement id="ar1"><requiredAuthority href="#bylaw"/></authorityRequirement>
+    <decisionTable id="dt-eligible" hitPolicy="UNIQUE" aggregation="SUM">
+      <input id="in-res" label="Residency">
+        <inputExpression id="ie-res" typeRef="string"><text>Residency</text></inputExpression>
+        <inputValues id="iv-res"><text>"resident","visitor"</text></inputValues>
+      </input>
+      <input id="in-car" label="Car type">
+        <inputExpression id="ie-car" typeRef="string"><text>Car type</text></inputExpression>
+        <inputValues id="iv-car"><text>"electric","petrol","diesel"</text></inputValues>
+      </input>
+      <output id="out-eligible"/>
+      <rule id="r1">
+        <inputEntry id="r1a"><text>"resident"</text></inputEntry>
+        <inputEntry id="r1b"><text>-</text></inputEntry>
+        <outputEntry id="r1o"><text>true</text></outputEntry>
+      </rule>
+      <rule id="r2">
+        <inputEntry id="r2a"><text>"resident"</text></inputEntry>
+        <inputEntry id="r2b"><text>"diesel"</text></inputEntry>
+        <outputEntry id="r2o"><text>false</text></outputEntry>
+      </rule>
+      <rule id="r3">
+        <inputEntry id="r3a"><text>"visitor"</text></inputEntry>
+        <inputEntry id="r3b"><text>"electric"</text></inputEntry>
+        <outputEntry id="r3o"><text>true</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+
+  <decision id="fee" name="Fee">
+    <variable id="v-fee" name="Annual fee" typeRef="number"/>
+    <informationRequirement id="ir3"><requiredDecision href="#eligible"/></informationRequirement>
+    <informationRequirement id="ir4"><requiredInput href="#cars"/></informationRequirement>
+    <authorityRequirement id="ar2"><requiredDecision href="#eligible"/></authorityRequirement>
+    <decisionTable id="dt-fee" hitPolicy="FIRST">
+      <input id="in-cars" label="Cars on address">
+        <inputExpression id="ie-cars" typeRef="number"><text>Cars on address</text></inputExpression>
+      </input>
+      <output id="out-fee">
+        <outputValues id="ov-fee"><text>0, 60, 120</text></outputValues>
+      </output>
+      <rule id="f1">
+        <inputEntry id="f1a"><text>&lt;= 1</text></inputEntry>
+        <outputEntry id="f1o"><text>60</text></outputEntry>
+      </rule>
+      <rule id="f2">
+        <inputEntry id="f2a"><text>&gt; 1</text></inputEntry>
+        <outputEntry id="f2o"><text>120</text></outputEntry>
+      </rule>
+      <rule id="f3">
+        <inputEntry id="f3a"><text>[2..3]</text></inputEntry>
+        <outputEntry id="f3o"><text>90</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+
+  <decision id="review" name="Review">
+    <variable id="v-review" name="Review" typeRef="boolean"/>
+    <informationRequirement id="ir5"><requiredInput href="#cars"/></informationRequirement>
+    <decisionTable id="dt-review">
+      <input id="in-cars2" label="Cars on address">
+        <inputExpression id="ie-cars2" typeRef="number"><text>Cars on address</text></inputExpression>
+      </input>
+      <output id="out-review"/>
+      <rule id="v1">
+        <inputEntry id="v1a"><text>&gt; Maximum</text></inputEntry>
+        <outputEntry id="v1o"><text>true</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

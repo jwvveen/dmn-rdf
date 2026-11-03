@@ -1,0 +1,96 @@
+@prefix dmn:  <https://w3id.org/dmn#> .
+@prefix bpmn: <https://w3id.org/bpmn#> .
+@prefix am:   <https://w3id.org/archimate#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+
+#################################################################
+# Bridge module: DMN 1.6, the law, concepts, BPMN and ArchiMate.
+#
+# Not part of the OMG metamodel.
+#
+# * BPMN: the hard bridge is already in the core. A Decision points to the
+#   processes and tasks that use it (dmn:usingProcess, dmn:usingTask, ranges
+#   in https://w3id.org/bpmn#), and BPMN 2.0 in RDF has bpmn:appliesRule for
+#   the other direction. shacl/dmn-bridge-shapes.ttl checks that both agree.
+# * Law and concepts: a knowledge source is the authority of a decision. For
+#   government that is usually a law article; dmn:legalBasis says which one.
+#   Input data and decisions are about something; dmn:meaning says what.
+# * ArchiMate 4.0 has no decision element. The correspondence is therefore
+#   weaker than for BPMN, and kept as data: which DMN class may elaborate
+#   which ArchiMate class, permitted or discouraged.
+#################################################################
+
+<https://w3id.org/dmn/bridges>
+    a owl:Ontology ;
+    dct:title "DMN 1.6 in RDF: bridges to the law, concepts, BPMN and ArchiMate 4.0"@en ,
+              "DMN 1.6 in RDF: bruggen naar wet, begrip, BPMN en ArchiMate 4.0"@nl ;
+    owl:imports <https://w3id.org/dmn> ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    owl:versionInfo "0.1.0" .
+
+# --- Law and meaning ------------------------------------------------------------
+
+dmn:legalBasis a owl:ObjectProperty ;
+    rdfs:label "legal basis"@en , "wettelijke grondslag"@nl ;
+    rdfs:comment "The source of law this element follows: a law article, a regulation or a policy rule, identified by its own IRI (for Dutch law a JCI or BWB identifier, for EU law ELI). Usually on a knowledge source; allowed on a decision or business knowledge model that cites the law directly. Unlike dmn:locationURI, which is text, this is a resource that other data can point to."@en ,
+                 "De rechtsbron die dit element volgt: een wetsartikel, een verordening of een beleidsregel, met zijn eigen IRI (voor Nederlandse wetgeving een JCI- of BWB-aanduiding, voor EU-wetgeving ELI). Meestal op een kennisbron; mag ook op een beslissing of rekenmodule die de wet rechtstreeks noemt."@nl ;
+    schema:domainIncludes dmn:KnowledgeSource , dmn:Decision , dmn:BusinessKnowledgeModel .
+
+dmn:meaning a owl:ObjectProperty ;
+    rdfs:label "meaning"@en , "betekenis"@nl ;
+    rdfs:range skos:Concept ;
+    rdfs:comment "The governed concept this element is about: the concept behind an input data element, a decision's answer, an item definition or a column of a decision table. Same idea as bpmn:meaning."@en ,
+                 "Het vastgestelde begrip waar dit element over gaat: het begrip achter een invoergegeven, het antwoord van een beslissing, een gegevenstype of een kolom van een beslistabel. Hetzelfde als bpmn:meaning."@nl .
+
+# --- ArchiMate --------------------------------------------------------------------
+
+dmn:elaborates a owl:ObjectProperty ;
+    rdfs:label "elaborates"@en , "werkt uit"@nl ;
+    rdfs:comment "This DMN element is the detailed model of that ArchiMate element: the decision logic behind a business function, the input data behind a business object, the knowledge source behind a requirement."@en ,
+                 "Dit DMN-element is het gedetailleerde model van dat ArchiMate-element: de beslislogica achter een bedrijfsfunctie, het invoergegeven achter een bedrijfsobject, de kennisbron achter een eis."@nl .
+
+dmn:supportedBy a owl:ObjectProperty ;
+    rdfs:label "supported by"@en , "ondersteund door"@nl ;
+    rdfs:comment "An application (or application service, system software) executes or supports this decision, business knowledge model or decision service."@en ,
+                 "Een applicatie (of applicatiedienst, systeemsoftware) voert deze beslissing, rekenmodule of beslisservice uit of ondersteunt die."@nl .
+
+dmn:BridgeRule a owl:Class ;
+    rdfs:label "Bridge rule"@en , "Brugregel"@nl ;
+    rdfs:comment "Which DMN class may be connected by which bridge property to which ArchiMate class. Status permitted or discouraged."@en .
+dmn:bridgeProperty a owl:ObjectProperty ; rdfs:domain dmn:BridgeRule .
+dmn:dmnType a owl:ObjectProperty ; rdfs:domain dmn:BridgeRule .
+dmn:archimateType a owl:ObjectProperty ; rdfs:domain dmn:BridgeRule .
+dmn:bridgeStatus a owl:DatatypeProperty ; rdfs:domain dmn:BridgeRule .
+
+dmn:bridge-decision-function a dmn:BridgeRule ; dmn:dmnType dmn:Decision ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Function ; dmn:bridgeStatus "permitted" ;
+    rdfs:comment "A business function that decides, such as assessing an application, with the DMN decision as its logic."@en .
+dmn:bridge-decision-process a dmn:BridgeRule ; dmn:dmnType dmn:Decision ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Process ; dmn:bridgeStatus "permitted" ;
+    rdfs:comment "A process step that is a decision. Prefer linking the BPMN task (dmn:usingTask) when the process is modelled in BPMN."@en .
+dmn:bridge-decision-service a dmn:BridgeRule ; dmn:dmnType dmn:Decision ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Service ; dmn:bridgeStatus "discouraged" ;
+    rdfs:comment "A service is what is offered outside; the decision behind it is better linked through a decision service."@en .
+dmn:bridge-decisionservice-service a dmn:BridgeRule ; dmn:dmnType dmn:DecisionService ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Service ; dmn:bridgeStatus "permitted" .
+dmn:bridge-decisionservice-appservice a dmn:BridgeRule ; dmn:dmnType dmn:DecisionService ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:ApplicationService ; dmn:bridgeStatus "permitted" .
+dmn:bridge-bkm-function a dmn:BridgeRule ; dmn:dmnType dmn:BusinessKnowledgeModel ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Function ; dmn:bridgeStatus "permitted" ;
+    rdfs:comment "Reusable decision logic, such as a calculation in a regulation."@en .
+dmn:bridge-inputdata-businessobject a dmn:BridgeRule ; dmn:dmnType dmn:InputData ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:BusinessObject ; dmn:bridgeStatus "permitted" .
+dmn:bridge-inputdata-dataobject a dmn:BridgeRule ; dmn:dmnType dmn:InputData ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:DataObject ; dmn:bridgeStatus "permitted" .
+dmn:bridge-knowledgesource-requirement a dmn:BridgeRule ; dmn:dmnType dmn:KnowledgeSource ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Requirement ; dmn:bridgeStatus "permitted" .
+dmn:bridge-knowledgesource-principle a dmn:BridgeRule ; dmn:dmnType dmn:KnowledgeSource ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Principle ; dmn:bridgeStatus "permitted" .
+dmn:bridge-knowledgesource-constraint a dmn:BridgeRule ; dmn:dmnType dmn:KnowledgeSource ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Constraint ; dmn:bridgeStatus "permitted" ;
+    rdfs:comment "Constraint is in the ArchiMate 3.2 profile; in 4.0 a constraint is a requirement."@en .
+dmn:bridge-knowledgesource-businessobject a dmn:BridgeRule ; dmn:dmnType dmn:KnowledgeSource ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:BusinessObject ; dmn:bridgeStatus "discouraged" ;
+    rdfs:comment "The document that holds the rule. Prefer dmn:legalBasis to the article itself, and a requirement or principle for what it demands."@en .
+dmn:bridge-orgunit-actor a dmn:BridgeRule ; dmn:dmnType dmn:OrganisationalUnit ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:BusinessActor ; dmn:bridgeStatus "permitted" .
+dmn:bridge-orgunit-role a dmn:BridgeRule ; dmn:dmnType dmn:OrganisationalUnit ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Role ; dmn:bridgeStatus "permitted" .
+dmn:bridge-objective-goal a dmn:BridgeRule ; dmn:dmnType dmn:Objective ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Goal ; dmn:bridgeStatus "permitted" .
+dmn:bridge-objective-outcome a dmn:BridgeRule ; dmn:dmnType dmn:Objective ; dmn:bridgeProperty dmn:elaborates ; dmn:archimateType am:Outcome ; dmn:bridgeStatus "permitted" .
+dmn:bridge-decision-component a dmn:BridgeRule ; dmn:dmnType dmn:Decision ; dmn:bridgeProperty dmn:supportedBy ; dmn:archimateType am:ApplicationComponent ; dmn:bridgeStatus "permitted" .
+dmn:bridge-decision-appservice a dmn:BridgeRule ; dmn:dmnType dmn:Decision ; dmn:bridgeProperty dmn:supportedBy ; dmn:archimateType am:ApplicationService ; dmn:bridgeStatus "permitted" .
+dmn:bridge-decisionservice-component a dmn:BridgeRule ; dmn:dmnType dmn:DecisionService ; dmn:bridgeProperty dmn:supportedBy ; dmn:archimateType am:ApplicationComponent ; dmn:bridgeStatus "permitted" .
+dmn:bridge-bkm-component a dmn:BridgeRule ; dmn:dmnType dmn:BusinessKnowledgeModel ; dmn:bridgeProperty dmn:supportedBy ; dmn:archimateType am:ApplicationComponent ; dmn:bridgeStatus "permitted" .
+dmn:bridge-decision-systemsoftware a dmn:BridgeRule ; dmn:dmnType dmn:Decision ; dmn:bridgeProperty dmn:supportedBy ; dmn:archimateType am:SystemSoftware ; dmn:bridgeStatus "permitted" ;
+    rdfs:comment "A rule engine that executes the decision."@en .

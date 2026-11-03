@@ -1,0 +1,1880 @@
+{
+  "source": {
+    "spec": "Decision Model and Notation (DMN), Version 1.6",
+    "omgDocumentNumber": "formal/25-12-02",
+    "date": "September 2026",
+    "dateNote": "The title page of the PDF still reads 'Release Date: tbd'.",
+    "url": "https://www.omg.org/spec/DMN/1.6/PDF",
+    "specPage": "https://www.omg.org/spec/DMN/1.6/",
+    "retrieved": "2026-11-03",
+    "sections": {
+      "requirements": "6.2.3 Connection rules, Table 2, printed pages 26-27 (PDF pages 36-37); 6.2.2 DRD Requirements, printed pages 24-25",
+      "requirementMetamodel": "6.3.13-6.3.15 Information/Knowledge/Authority Requirement metamodel, Tables 20-22, printed pages 46-48 (PDF pages 56-58)",
+      "drgMetamodel": "6.3.1-6.3.12, printed pages 31-46",
+      "decisionLogic": "7.1-7.3 (Expression, UnaryTests, ItemDefinition, InformationItem, LiteralExpression, Invocation, Binding), printed pages 51-63",
+      "decisionTable": "8 Decision Table, printed pages 65-79; hit policies 8.2.11 and 8.2.11.1, printed pages 73-75 (PDF pages 83-85)",
+      "sFeel": "9.5 Use of S-FEEL expressions, printed pages 86-87",
+      "feelDecisionTable": "10.3.2.10 Decision Table, printed pages 118-121 (only its model constraints)"
+    },
+    "pageNumbers": "All 'page' values are the page numbers printed in the spec header/footer (PDF page = printed page + 10). Constraint and hit-policy pages were computed from the position of the text in the extract.",
+    "textExtract": "ontology/dmn/sources/.cache/DMN16.txt (one block per PDF page, marked '=== pN'; not in git)",
+    "machineReadable": {
+      "DMN16.xmi": "https://www.omg.org/spec/DMN/20240513/DMN16.xmi",
+      "DMN16.xsd": "https://www.omg.org/spec/DMN/20240513/DMN16.xsd"
+    },
+    "namespaces": {
+      "model": "https://www.omg.org/spec/DMN/20240513/MODEL/",
+      "feel": "https://www.omg.org/spec/DMN/20240513/FEEL/"
+    }
+  },
+  "requirements": {
+    "table": "Table 2: Requirements connection rules",
+    "section": "6.2.3 Connection rules",
+    "page": "26-27",
+    "reading": "One row per ordered pair. 'from' is the required element, 'to' is the requiring element (Table 2 column 'To (Required by)'); in the DRD the arrow runs from 'from' to 'to'. allowed=true exactly for the 11 rows printed in Table 2; the other 14 pairs are not listed and therefore not permitted (6.2.3: 'The rules governing the permissible ways of connecting elements with requirements in a DRD are described in Clause 6.2.2 above and summarized in Table 2'). Table 2 prints the requirement as 'Information', 'Knowledge' or 'Authority'; here the metamodel class names are used.",
+    "schemaReading": "schemaAllows lists the requirement classes that DMN16.xsd and DMN16.xmi structurally accept for the pair: the requirement must be ownable by the 'to' element and must have a reference property whose type is the 'from' element. XSD ownership: tDecision owns informationRequirement, knowledgeRequirement, authorityRequirement; tBusinessKnowledgeModel owns knowledgeRequirement, authorityRequirement; tKnowledgeSource owns authorityRequirement; tInputData and tDecisionService own no requirements. Reference properties: tInformationRequirement = choice requiredDecision | requiredInput; tKnowledgeRequirement = requiredKnowledge (XMI type Invocable, i.e. BusinessKnowledgeModel or DecisionService); tAuthorityRequirement = choice requiredDecision | requiredInput | requiredAuthority (XMI types Decision, InputData, KnowledgeSource). Note that in the XSD every reference is a tDMNElementReference with only an href attribute, so the XSD alone does not type the target at all; the target kinds are taken from the reference element names and the XMI property types.",
+    "objects": [
+      {
+        "id": "Decision",
+        "label": "Decision",
+        "xsdType": "tDecision",
+        "xmiClass": "Decision"
+      },
+      {
+        "id": "BusinessKnowledgeModel",
+        "label": "Business Knowledge Model",
+        "xsdType": "tBusinessKnowledgeModel",
+        "xmiClass": "BusinessKnowledgeModel"
+      },
+      {
+        "id": "DecisionService",
+        "label": "Decision Service",
+        "xsdType": "tDecisionService",
+        "xmiClass": "DecisionService"
+      },
+      {
+        "id": "InputData",
+        "label": "Input data",
+        "xsdType": "tInputData",
+        "xmiClass": "InputData"
+      },
+      {
+        "id": "KnowledgeSource",
+        "label": "Knowledge Source",
+        "xsdType": "tKnowledgeSource",
+        "xmiClass": "KnowledgeSource"
+      }
+    ],
+    "rules": [
+      {
+        "from": "Decision",
+        "to": "Decision",
+        "allowed": true,
+        "requirement": "InformationRequirement",
+        "page": "26",
+        "schemaAllows": [
+          "InformationRequirement",
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tDecision.informationRequirement / tInformationRequirement.requiredDecision",
+          "tDecision.authorityRequirement / tAuthorityRequirement.requiredDecision"
+        ],
+        "schemaMismatch": [
+          "AuthorityRequirement"
+        ],
+        "note": "Table 22 (clause 6.3.15, printed page 48) describes requiredDecision as 'The instance of Decision that this AuthorityRequirement associates with its containing KnowledgeSource element' and requiredInput as 'The instance of InputData that this AuthorityRequirement associates with its containing KnowledgeSource element'; only requiredAuthority is described as associating with a 'containing KnowledgeSource, Decision or BusinessKnowledgeModel element'. Together with Table 2 and clause 6.2.2.3 b) ('drawn from Input Data and Decisions to Knowledge Sources') an AuthorityRequirement whose source is a Decision or Input Data may only be owned by a KnowledgeSource. The XSD (tAuthorityRequirement: choice of requiredDecision | requiredInput | requiredAuthority, owned by tDecision, tBusinessKnowledgeModel and tKnowledgeSource) and the XMI (AuthorityRequirement.requiredDecision/requiredInput [0..1], owners decision/bkm/knowledgeSource) do not restrict this, so this pair is schema-valid but forbidden by the specification text."
+      },
+      {
+        "from": "Decision",
+        "to": "BusinessKnowledgeModel",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tBusinessKnowledgeModel.authorityRequirement / tAuthorityRequirement.requiredDecision"
+        ],
+        "schemaMismatch": [
+          "AuthorityRequirement"
+        ],
+        "note": "Table 22 (clause 6.3.15, printed page 48) describes requiredDecision as 'The instance of Decision that this AuthorityRequirement associates with its containing KnowledgeSource element' and requiredInput as 'The instance of InputData that this AuthorityRequirement associates with its containing KnowledgeSource element'; only requiredAuthority is described as associating with a 'containing KnowledgeSource, Decision or BusinessKnowledgeModel element'. Together with Table 2 and clause 6.2.2.3 b) ('drawn from Input Data and Decisions to Knowledge Sources') an AuthorityRequirement whose source is a Decision or Input Data may only be owned by a KnowledgeSource. The XSD (tAuthorityRequirement: choice of requiredDecision | requiredInput | requiredAuthority, owned by tDecision, tBusinessKnowledgeModel and tKnowledgeSource) and the XMI (AuthorityRequirement.requiredDecision/requiredInput [0..1], owners decision/bkm/knowledgeSource) do not restrict this, so this pair is schema-valid but forbidden by the specification text."
+      },
+      {
+        "from": "Decision",
+        "to": "DecisionService",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "Decision",
+        "to": "InputData",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "Decision",
+        "to": "KnowledgeSource",
+        "allowed": true,
+        "requirement": "AuthorityRequirement",
+        "page": "26",
+        "schemaAllows": [
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tKnowledgeSource.authorityRequirement / tAuthorityRequirement.requiredDecision"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "BusinessKnowledgeModel",
+        "to": "Decision",
+        "allowed": true,
+        "requirement": "KnowledgeRequirement",
+        "page": "26",
+        "schemaAllows": [
+          "KnowledgeRequirement"
+        ],
+        "schemaVia": [
+          "tDecision.knowledgeRequirement / tKnowledgeRequirement.requiredKnowledge"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "BusinessKnowledgeModel",
+        "to": "BusinessKnowledgeModel",
+        "allowed": true,
+        "requirement": "KnowledgeRequirement",
+        "page": "26",
+        "schemaAllows": [
+          "KnowledgeRequirement"
+        ],
+        "schemaVia": [
+          "tBusinessKnowledgeModel.knowledgeRequirement / tKnowledgeRequirement.requiredKnowledge"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "BusinessKnowledgeModel",
+        "to": "DecisionService",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "BusinessKnowledgeModel",
+        "to": "InputData",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "BusinessKnowledgeModel",
+        "to": "KnowledgeSource",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "DecisionService",
+        "to": "Decision",
+        "allowed": true,
+        "requirement": "KnowledgeRequirement",
+        "page": "26",
+        "schemaAllows": [
+          "KnowledgeRequirement"
+        ],
+        "schemaVia": [
+          "tDecision.knowledgeRequirement / tKnowledgeRequirement.requiredKnowledge"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "DecisionService",
+        "to": "BusinessKnowledgeModel",
+        "allowed": true,
+        "requirement": "KnowledgeRequirement",
+        "page": "27",
+        "schemaAllows": [
+          "KnowledgeRequirement"
+        ],
+        "schemaVia": [
+          "tBusinessKnowledgeModel.knowledgeRequirement / tKnowledgeRequirement.requiredKnowledge"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "DecisionService",
+        "to": "DecisionService",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "DecisionService",
+        "to": "InputData",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "DecisionService",
+        "to": "KnowledgeSource",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "InputData",
+        "to": "Decision",
+        "allowed": true,
+        "requirement": "InformationRequirement",
+        "page": "27",
+        "schemaAllows": [
+          "InformationRequirement",
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tDecision.informationRequirement / tInformationRequirement.requiredInput",
+          "tDecision.authorityRequirement / tAuthorityRequirement.requiredInput"
+        ],
+        "schemaMismatch": [
+          "AuthorityRequirement"
+        ],
+        "note": "Table 22 (clause 6.3.15, printed page 48) describes requiredDecision as 'The instance of Decision that this AuthorityRequirement associates with its containing KnowledgeSource element' and requiredInput as 'The instance of InputData that this AuthorityRequirement associates with its containing KnowledgeSource element'; only requiredAuthority is described as associating with a 'containing KnowledgeSource, Decision or BusinessKnowledgeModel element'. Together with Table 2 and clause 6.2.2.3 b) ('drawn from Input Data and Decisions to Knowledge Sources') an AuthorityRequirement whose source is a Decision or Input Data may only be owned by a KnowledgeSource. The XSD (tAuthorityRequirement: choice of requiredDecision | requiredInput | requiredAuthority, owned by tDecision, tBusinessKnowledgeModel and tKnowledgeSource) and the XMI (AuthorityRequirement.requiredDecision/requiredInput [0..1], owners decision/bkm/knowledgeSource) do not restrict this, so this pair is schema-valid but forbidden by the specification text."
+      },
+      {
+        "from": "InputData",
+        "to": "BusinessKnowledgeModel",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tBusinessKnowledgeModel.authorityRequirement / tAuthorityRequirement.requiredInput"
+        ],
+        "schemaMismatch": [
+          "AuthorityRequirement"
+        ],
+        "note": "Table 22 (clause 6.3.15, printed page 48) describes requiredDecision as 'The instance of Decision that this AuthorityRequirement associates with its containing KnowledgeSource element' and requiredInput as 'The instance of InputData that this AuthorityRequirement associates with its containing KnowledgeSource element'; only requiredAuthority is described as associating with a 'containing KnowledgeSource, Decision or BusinessKnowledgeModel element'. Together with Table 2 and clause 6.2.2.3 b) ('drawn from Input Data and Decisions to Knowledge Sources') an AuthorityRequirement whose source is a Decision or Input Data may only be owned by a KnowledgeSource. The XSD (tAuthorityRequirement: choice of requiredDecision | requiredInput | requiredAuthority, owned by tDecision, tBusinessKnowledgeModel and tKnowledgeSource) and the XMI (AuthorityRequirement.requiredDecision/requiredInput [0..1], owners decision/bkm/knowledgeSource) do not restrict this, so this pair is schema-valid but forbidden by the specification text."
+      },
+      {
+        "from": "InputData",
+        "to": "DecisionService",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "InputData",
+        "to": "InputData",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "InputData",
+        "to": "KnowledgeSource",
+        "allowed": true,
+        "requirement": "AuthorityRequirement",
+        "page": "27",
+        "schemaAllows": [
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tKnowledgeSource.authorityRequirement / tAuthorityRequirement.requiredInput"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "KnowledgeSource",
+        "to": "Decision",
+        "allowed": true,
+        "requirement": "AuthorityRequirement",
+        "page": "27",
+        "schemaAllows": [
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tDecision.authorityRequirement / tAuthorityRequirement.requiredAuthority"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "KnowledgeSource",
+        "to": "BusinessKnowledgeModel",
+        "allowed": true,
+        "requirement": "AuthorityRequirement",
+        "page": "27",
+        "schemaAllows": [
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tBusinessKnowledgeModel.authorityRequirement / tAuthorityRequirement.requiredAuthority"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "KnowledgeSource",
+        "to": "DecisionService",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "KnowledgeSource",
+        "to": "InputData",
+        "allowed": false,
+        "requirement": null,
+        "page": null,
+        "schemaAllows": [],
+        "schemaVia": [],
+        "schemaMismatch": [],
+        "note": null
+      },
+      {
+        "from": "KnowledgeSource",
+        "to": "KnowledgeSource",
+        "allowed": true,
+        "requirement": "AuthorityRequirement",
+        "page": "27",
+        "schemaAllows": [
+          "AuthorityRequirement"
+        ],
+        "schemaVia": [
+          "tKnowledgeSource.authorityRequirement / tAuthorityRequirement.requiredAuthority"
+        ],
+        "schemaMismatch": [],
+        "note": null
+      }
+    ],
+    "footnotes": [
+      "6.2.3 (printed page 26): 'Note that no requirements may be drawn terminating in Input Data, that is, input data may have no requirements.'",
+      "6.2.3 (printed page 26): 'Note also that the type of the requirement is uniquely determined by the types of the two elements connected.' True for Table 2, but not for the schema: Decision -> Decision and Input Data -> Decision are accepted as both InformationRequirement and AuthorityRequirement.",
+      "Decision Service is never a requiring element: it owns no requirements in text, XSD or XMI. Its inputDecision/inputData/encapsulatedDecision/outputDecision references are not requirements."
+    ]
+  },
+  "hitPolicies": [
+    {
+      "id": "UNIQUE",
+      "letter": "U",
+      "label": "Unique",
+      "single": true,
+      "ruleOrderMatters": false,
+      "overlapAllowed": false,
+      "needsOutputValues": false,
+      "compoundOutputAllowed": true,
+      "compoundOutputOnlyWithoutAggregator": false,
+      "definition": "Unique: no overlap is possible, and all rules are disjoint. Only a single rule can be matched. This is the default.",
+      "section": "8.2.11.1",
+      "page": "74",
+      "note": "8.2.11: 'Decision tables with the Unique hit policy SHALL NOT contain overlapping rules.' Crosstab tables are always Unique (8.2.11, 8.2.2)."
+    },
+    {
+      "id": "ANY",
+      "letter": "A",
+      "label": "Any",
+      "single": true,
+      "ruleOrderMatters": false,
+      "overlapAllowed": true,
+      "needsOutputValues": false,
+      "compoundOutputAllowed": true,
+      "compoundOutputOnlyWithoutAggregator": false,
+      "definition": "Any: there may be overlap, but all the matching rules show equal output entries for each output (ignoring rule annotations), so any match can be used.",
+      "section": "8.2.11.1",
+      "page": "74",
+      "note": "8.2.11.1: 'If the output entries are non-equal (ignoring rule annotations), the hit policy is incorrect, and the result is undefined.'"
+    },
+    {
+      "id": "PRIORITY",
+      "letter": "P",
+      "label": "Priority",
+      "single": true,
+      "ruleOrderMatters": false,
+      "overlapAllowed": true,
+      "needsOutputValues": true,
+      "compoundOutputAllowed": true,
+      "compoundOutputOnlyWithoutAggregator": false,
+      "definition": "Priority: multiple rules can match, with different output entries. This policy returns the matching rule with the highest output priority. Output priorities are specified in the ordered list of output values, in decreasing order of priority. Note that priorities are independent from rule sequence.",
+      "section": "8.2.11.1",
+      "page": "74",
+      "note": "Needs the ordered list of output values (8.2.6, 8.2.11.1). For compound outputs priority is decided over all outputs that have output values, left to right / top to bottom (8.2.11.1)."
+    },
+    {
+      "id": "FIRST",
+      "letter": "F",
+      "label": "First",
+      "single": true,
+      "ruleOrderMatters": true,
+      "overlapAllowed": true,
+      "needsOutputValues": false,
+      "compoundOutputAllowed": true,
+      "compoundOutputOnlyWithoutAggregator": false,
+      "definition": "First: multiple (overlapping) rules can match, with different output entries. The first hit by rule order is returned (and evaluation can halt).",
+      "section": "8.2.11.1",
+      "page": "74",
+      "note": "Rule numbering required (8.2); rules SHALL be ordered (8.3.1)."
+    },
+    {
+      "id": "OUTPUT ORDER",
+      "letter": "O",
+      "label": "Output order",
+      "single": false,
+      "ruleOrderMatters": false,
+      "overlapAllowed": true,
+      "needsOutputValues": true,
+      "compoundOutputAllowed": true,
+      "compoundOutputOnlyWithoutAggregator": false,
+      "definition": "Output order: returns all hits in decreasing output priority order. Output priorities are specified in the ordered list of output values in decreasing order of priority.",
+      "section": "8.2.11.1",
+      "page": "74",
+      "note": "compoundOutputAllowed=true follows 8.2.11.1 (printed page 75), which lists Output order among the hit policies supported by compound-output tables and shows an example (Figure 8-19 'Output order with compound output'). Clause 10.3.2.10 (printed page 120) contradicts this twice: its list of hit policies for compound outputs omits Output order, and step 3a says 'If the hit policy is \"Output order\", the decision table SHALL be single output'."
+    },
+    {
+      "id": "RULE ORDER",
+      "letter": "R",
+      "label": "Rule order",
+      "single": false,
+      "ruleOrderMatters": true,
+      "overlapAllowed": true,
+      "needsOutputValues": false,
+      "compoundOutputAllowed": true,
+      "compoundOutputOnlyWithoutAggregator": false,
+      "definition": "Rule order: returns all hits in rule order. Note: the meaning may depend on the sequence of the rules.",
+      "section": "8.2.11.1",
+      "page": "74",
+      "note": "Rule numbering required (8.2); rules SHALL be ordered (8.3.1)."
+    },
+    {
+      "id": "COLLECT",
+      "letter": "C",
+      "label": "Collect",
+      "single": false,
+      "ruleOrderMatters": false,
+      "overlapAllowed": true,
+      "needsOutputValues": false,
+      "compoundOutputAllowed": true,
+      "compoundOutputOnlyWithoutAggregator": true,
+      "definition": "Collect: returns either all hits in arbitrary order, or the result of applying a simple function to them.",
+      "section": "8.2.11.1",
+      "page": "74",
+      "note": "compoundOutputAllowed only without aggregation: 'Decision tables with compound outputs support only the following hit policies: ... Collect without operator, because the collect operator is undefined over multiple outputs' (8.2.11.1). The aggregation attribute applies only when hitPolicy is COLLECT (8.3.1, Table 32)."
+    }
+  ],
+  "aggregators": [
+    {
+      "id": "SUM",
+      "operator": "+",
+      "indicator": "C+",
+      "feelFunction": "sum",
+      "definition": "+ (sum): the result of the decision table is the sum of all the outputs.",
+      "section": "8.2.11.1",
+      "page": "75"
+    },
+    {
+      "id": "COUNT",
+      "operator": "#",
+      "indicator": "C#",
+      "feelFunction": "count",
+      "definition": "# (count): the result of the decision table is the number of outputs.",
+      "section": "8.2.11.1",
+      "page": "75"
+    },
+    {
+      "id": "MIN",
+      "operator": "<",
+      "indicator": "C<",
+      "feelFunction": "minimum",
+      "definition": "< (min): the result of the decision table is the smallest value of all the outputs.",
+      "section": "8.2.11.1",
+      "page": "75"
+    },
+    {
+      "id": "MAX",
+      "operator": ">",
+      "indicator": "C>",
+      "feelFunction": "maximum",
+      "definition": "> (max): the result of the decision table is the largest value of all the outputs.",
+      "section": "8.2.11.1",
+      "page": "75"
+    }
+  ],
+  "constraintsInfo": {
+    "reading": "Normative sentences that constrain DMN models (not tool conformance, not FEEL evaluation semantics), quoted verbatim from the specification; only PDF extraction artefacts (line breaks, broken hyphenation, stray spaces inside words) are repaired. 'strength': SHALL (also MUST, must, cannot, may not, can only, and restrictive descriptions), SHOULD, MAY (a conditional permission), DEFINITION (a definition a checker needs, such as overlap and completeness). 'note' is ours, not the specification's.",
+    "verbatimCheck": {
+      "total": 177,
+      "exactAfterWhitespaceNormalisation": 175,
+      "matchIgnoringAllWhitespace": 2,
+      "notFound": 0
+    }
+  },
+  "constraints": [
+    {
+      "section": "6.1",
+      "page": "21",
+      "topic": "drg",
+      "strength": "SHALL",
+      "text": "A DRG is a graph composed of elements connected by requirements and is self-contained in the sense that all the modeled requirements for any Decision in the DRG (its immediate sources of information, knowledge, and authority) are present in the same DRG."
+    },
+    {
+      "section": "6.2.2.1",
+      "page": "24",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "Information Requirements may be drawn from Input Data elements to Decisions, and from Decisions to other Decisions.",
+      "note": "Permissive wording; read with Table 2 as the exhaustive list."
+    },
+    {
+      "section": "6.2.2.1",
+      "page": "24",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "The Information Requirements of a valid DRG form a directed acyclic graph."
+    },
+    {
+      "section": "6.2.2.2",
+      "page": "24",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "Knowledge Requirements may be drawn from invocable elements (Business Knowledge Models or Decision Services) to Decisions and from invocable elements to Business Knowledge Models.",
+      "note": "Permissive wording; read with Table 2 as the exhaustive list."
+    },
+    {
+      "section": "6.2.2.2",
+      "page": "24",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "If e is a decision or a BKM in some DRD, and e contains a knowledge requirement on some invocable element b, then the logic of e must contain an invocation expression of b, including expressions for each of b's parameters."
+    },
+    {
+      "section": "6.2.2.3",
+      "page": "25",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "They may be drawn from Knowledge Sources to Decisions, Business Knowledge Models, and other Knowledge Sources, where they represent the dependence of the DRD element on the knowledge source.",
+      "note": "'They' = Authority Requirements, use a). Permissive wording; read with Table 2."
+    },
+    {
+      "section": "6.2.2.3",
+      "page": "25",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "They may be drawn from Input Data and Decisions to Knowledge Sources, where, in conjunction with use (a), they represent the derivation of Business Knowledge Models from instances of Input Data and Decision results, using analytics.",
+      "note": "'They' = Authority Requirements, use b). Permissive wording; read with Table 2."
+    },
+    {
+      "section": "6.2.3",
+      "page": "26",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "Note that no requirements may be drawn terminating in Input Data, that is, input data may have no requirements."
+    },
+    {
+      "section": "6.2.3",
+      "page": "26",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "Note also that the type of the requirement is uniquely determined by the types of the two elements connected.",
+      "note": "Holds for Table 2 but not for DMN16.xsd/DMN16.xmi, which accept Decision -> Decision and Input Data -> Decision as AuthorityRequirement too."
+    },
+    {
+      "section": "6.2.5",
+      "page": "28",
+      "topic": "decisionService",
+      "strength": "SHALL",
+      "text": "The border SHALL enclose all the encapsulated decisions, and no other decisions or input data.",
+      "note": "DRD notation (checkable against DMNDI bounds)."
+    },
+    {
+      "section": "6.2.5",
+      "page": "28",
+      "topic": "decisionService",
+      "strength": "SHALL",
+      "text": "If the set of output decisions is smaller than the set of encapsulated decisions, the Decision Service SHALL be divided into two parts with a straight solid line.",
+      "note": "DRD notation."
+    },
+    {
+      "section": "6.2.5",
+      "page": "28",
+      "topic": "decisionService",
+      "strength": "SHALL",
+      "text": "One part SHALL enclose only the output decisions and the Decision Service's Name; the other part SHALL enclose all the encapsulated decisions which are not in the set of output decisions.",
+      "note": "DRD notation."
+    },
+    {
+      "section": "6.2.5",
+      "page": "30",
+      "topic": "decisionService",
+      "strength": "SHALL",
+      "text": "The constraint imposed on the rendering of decision services within a DRD is that the same decision service MUST NOT be rendered both expanded and collapsed within the same DRD.",
+      "note": "DRD notation."
+    },
+    {
+      "section": "6.2.5",
+      "page": "30",
+      "topic": "drg",
+      "strength": "SHALL",
+      "text": "This stems from the general restriction disallowing the same DMN Element to be present twice in the same diagram.",
+      "note": "DRD notation."
+    },
+    {
+      "section": "6.3.1",
+      "page": "31",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The id of a DMNElement is further restricted to the syntax of an XML ID (https://www.w3.org/TR/2004/REC-xmlschema-2-20041028/datatypes.html#ID), and SHALL be unique within the decision model."
+    },
+    {
+      "section": "6.3.1 (Table 3)",
+      "page": "31",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "Optional identifier for this element. SHALL be unique within its containing Definitions element.",
+      "note": "Scope differs from the sentence above ('within the decision model')."
+    },
+    {
+      "section": "6.3.2",
+      "page": "33",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The language SHALL be specified in a URI format.",
+      "note": "Definitions.expressionLanguage (6.3.2, also Table 5 for expressionLanguage and typeLanguage)."
+    },
+    {
+      "section": "6.3.2",
+      "page": "34",
+      "topic": "itemDefinition",
+      "strength": "SHALL",
+      "text": "The typeLanguage SHALL be specified in a URI format (the URI for FEEL is “https://www.omg.org/spec/DMN/20230324/FEEL/”;",
+      "note": "The FEEL URI given here (20230324) differs from the one given for expressionLanguage on the previous page (https://www.omg.org/spec/DMN/20240513/FEEL/)."
+    },
+    {
+      "section": "6.3.3",
+      "page": "35",
+      "topic": "import",
+      "strength": "SHALL",
+      "text": "Imports SHALL be explicitly defined."
+    },
+    {
+      "section": "6.3.3",
+      "page": "35",
+      "topic": "import",
+      "strength": "SHALL",
+      "text": "The namespace value should be globally unique, but the import name, which is typically a short business-friendly name, must be distinct from the names of other imports, decisions, input data, business knowledge models, decision services, and item definitions within the importing model only."
+    },
+    {
+      "section": "6.3.4",
+      "page": "36",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The id of an ElementCollection element SHALL be unique within the containing instance of Definitions."
+    },
+    {
+      "section": "6.3.4",
+      "page": "36",
+      "topic": "drg",
+      "strength": "SHALL",
+      "text": "Notice that an ElementCollection element must reference the instances of DRGElement that it collects, not contain them: instances of DRGElement can only be contained in Definitions elements."
+    },
+    {
+      "section": "6.3.5",
+      "page": "36",
+      "topic": "drg",
+      "strength": "SHALL",
+      "text": "All the elements of a DMN decision model that are not contained directly in a Definitions element (specifically: all three kinds of requirement, bindings, clause and decision rules, import, and objective) SHALL be contained in an instance of DRGElement, or in a model element that is contained in an instance of DRGElement, recursively.",
+      "note": "Lists 'import' although Definitions contains import directly (6.3.2, Table 5)."
+    },
+    {
+      "section": "6.3.5",
+      "page": "36",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The id of a DRGElement element SHALL be unique within the containing instance of Definitions."
+    },
+    {
+      "section": "6.3.6.2",
+      "page": "37",
+      "topic": "drg",
+      "strength": "SHALL",
+      "text": "As an Artifact, a Group is not a DRGElement, and, therefore, cannot be connected to/from an Information Requirement, Knowledge Requirement, or Authority Requirement."
+    },
+    {
+      "section": "6.3.6.2",
+      "page": "37",
+      "topic": "drg",
+      "strength": "SHALL",
+      "text": "It can only be connected to/from an Association.",
+      "note": "'It' = a Group."
+    },
+    {
+      "section": "6.3.7",
+      "page": "38",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The name of a Decision must be different from the name of any other invocable, input data, decision, or import in the decision model."
+    },
+    {
+      "section": "6.3.7",
+      "page": "39",
+      "topic": "decision",
+      "strength": "SHALL",
+      "text": "An instance of Decision – that is, the model of a decision – is said to be well-formed if and only if all of its informationRequirement and knowledgeRequirement elements are well-formed"
+    },
+    {
+      "section": "6.3.7",
+      "page": "39",
+      "topic": "decision",
+      "strength": "SHALL",
+      "text": "That condition entails, in particular, that the requirement subgraph of a Decision element SHALL be acyclic, that is, that a Decision element SHALL not require itself, directly or indirectly."
+    },
+    {
+      "section": "6.3.9",
+      "page": "42",
+      "topic": "bkm",
+      "strength": "SHALL",
+      "text": "A business knowledge model has an abstract part, representing reusable, invocable decision logic, and a concrete part, which mandates that the decision logic must be a single FEEL boxed function definition."
+    },
+    {
+      "section": "6.3.9",
+      "page": "42",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The name of an Invocable must be different from the name of any other invocable, input data, decision, or import in the decision model."
+    },
+    {
+      "section": "6.3.9",
+      "page": "42",
+      "topic": "bkm",
+      "strength": "SHALL",
+      "text": "That condition entails, in particular, that the requirement subgraph of a BusinessKnowledgeModel element SHALL be acyclic, that is, that a BusinessKnowledgeModel element SHALL not require itself, directly or indirectly."
+    },
+    {
+      "section": "6.3.9",
+      "page": "42",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The name of that InformationItem SHALL be the same as the name of the Invocable element.",
+      "note": "The variable of an Invocable (BKM or Decision Service)."
+    },
+    {
+      "section": "6.3.10",
+      "page": "43",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The id of a DecisionService element SHALL be unique within the containing instance of Definitions."
+    },
+    {
+      "section": "6.3.10",
+      "page": "44",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The name of the variable and the name of the DecisionService SHALL be the same."
+    },
+    {
+      "section": "6.3.10",
+      "page": "44",
+      "topic": "decisionService",
+      "strength": "SHALL",
+      "text": "A DecisionService element has one or more associated outputDecisions, which are the instances of Decision required to be output by this DecisionService, i.e., the Decisions whose results the Decision Service must return when called.",
+      "note": "Table 17 says outputDecisions [1..*]; DMN16.xsd (outputDecision minOccurs=0) and DMN16.xmi (outputDecision [0..*]) do not enforce it."
+    },
+    {
+      "section": "6.3.10",
+      "page": "44",
+      "topic": "decisionService",
+      "strength": "SHALL",
+      "text": "At least one of the encapsulatedDecisions and inputDecisions attributes SHALL be specified."
+    },
+    {
+      "section": "6.3.10",
+      "page": "44",
+      "topic": "decisionService",
+      "strength": "SHALL",
+      "text": "An instance of DecisionService is said to be well-formed if and only if its requirement subgraph is acyclic, that is, that a DecisionService element SHALL not require itself, directly or indirectly."
+    },
+    {
+      "section": "6.3.11",
+      "page": "45",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The name of an InputData must be different from the name of any other decision, input data, business knowledge model, decision service, or import in the decision model."
+    },
+    {
+      "section": "6.3.11",
+      "page": "45",
+      "topic": "inputData",
+      "strength": "SHALL",
+      "text": "An InputData element does not have a requirement subgraph, and it is always well-formed."
+    },
+    {
+      "section": "6.3.12 (Table 19)",
+      "page": "46",
+      "topic": "knowledgeSource",
+      "strength": "SHALL",
+      "text": "The locationURI SHALL be specified in a URI format."
+    },
+    {
+      "section": "6.3.13",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "An InformationRequirement element is a component of a Decision element, and it associates that requiring Decision element with a requiredDecision element, which is an instance of Decision, or a requiredInput element, which is an instance of InputData."
+    },
+    {
+      "section": "6.3.13",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "Notice that an InformationRequirement element must reference the instance of Decision or InputData that it associates with the requiring Decision element, not contain it: instances of Decision or InputData can only be contained in Definitions elements."
+    },
+    {
+      "section": "6.3.13",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "It references a requiredDecision or a requiredInput element, but not both.",
+      "note": "Well-formedness condition of InformationRequirement."
+    },
+    {
+      "section": "6.3.13",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "The referenced requiredDecision or requiredInput element is well-formed.",
+      "note": "Well-formedness condition of InformationRequirement."
+    },
+    {
+      "section": "6.3.13",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "The Decision element that contains the instance of InformationRequirement is not in the requirement subgraph of the referenced requiredknowledge element, if this InformationRequirement element references one.",
+      "note": "Well-formedness condition of InformationRequirement. Says 'requiredknowledge', a property InformationRequirement does not have (copy from 6.3.14); presumably requiredDecision is meant."
+    },
+    {
+      "section": "6.3.13",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "The referenced requiredDecision or requiredInput element is defined in the same decision model or in an imported decision model.",
+      "note": "Well-formedness condition of InformationRequirement."
+    },
+    {
+      "section": "6.3.14",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "A KnowledgeRequirement element is a component of a Decision element or of a BusinessKnowledgeModel element, and it associates that requiring Decision or BusinessKnowledgeModel element with a requiredKnowledge element, which is an instance of Invocable."
+    },
+    {
+      "section": "6.3.14",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "Notice that a KnowledgeRequirement element must reference the instance of Invocable that it associates with the requiring Decision or BusinessKnowledgeModel element, not contain it: instances of BusinessKnowledgeModel can only be contained in Definitions elements."
+    },
+    {
+      "section": "6.3.14",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "It references a requiredKnowledge element.",
+      "note": "Well-formedness condition of KnowledgeRequirement."
+    },
+    {
+      "section": "6.3.14",
+      "page": "47",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "The referenced requiredKnowledge element is well-formed.",
+      "note": "Well-formedness condition of KnowledgeRequirement."
+    },
+    {
+      "section": "6.3.14",
+      "page": "48",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "If the KnowledgeRequirement element is contained in an instance of BusinessKnowledgeModel, that BusinessKnowledgeModel element is not in the requirement subgraph of the referenced requiredKnowledge element.",
+      "note": "Well-formedness condition of KnowledgeRequirement."
+    },
+    {
+      "section": "6.3.14",
+      "page": "48",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "The referenced requiredKnowledge element is defined in the same decision model or in an imported decision model.",
+      "note": "Well-formedness condition of KnowledgeRequirement."
+    },
+    {
+      "section": "6.3.15",
+      "page": "48",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "An AuthorityRequirement element is a component of a Decision, BusinessKnowledgeModel or KnowledgeSource element, and it associates that requiring Decision, BusinessKnowledgeModel or KnowledgeSource element with a requiredAuthority element, which is an instance of KnowledgeSource, a requiredDecision element, which is an instance of Decision, or a requiredInput element, which is an instance of InputData.",
+      "note": "Read alone this permits all 9 combinations, as the schema does; Table 22 and Table 2 restrict requiredDecision/requiredInput to a KnowledgeSource owner."
+    },
+    {
+      "section": "6.3.15",
+      "page": "48",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "Notice that an AuthorityRequirement element must reference the instance of KnowledgeSource, Decision or InputData that it associates with the requiring element, not contain it: instances of Knowledge Source, Decision or InputData can only be contained in Definitions elements."
+    },
+    {
+      "section": "6.3.15 (Table 22, requiredDecision)",
+      "page": "48",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "The instance of Decision that this AuthorityRequirement associates with its containing KnowledgeSource element.",
+      "note": "Restricts AuthorityRequirement.requiredDecision to a KnowledgeSource owner; not enforced by DMN16.xsd/DMN16.xmi."
+    },
+    {
+      "section": "6.3.15 (Table 22, requiredInput)",
+      "page": "48",
+      "topic": "requirements",
+      "strength": "SHALL",
+      "text": "The instance of InputData that this AuthorityRequirement associates with its containing KnowledgeSource element.",
+      "note": "Restricts AuthorityRequirement.requiredInput to a KnowledgeSource owner; not enforced by DMN16.xsd/DMN16.xmi."
+    },
+    {
+      "section": "7.1",
+      "page": "52",
+      "topic": "decision",
+      "strength": "SHALL",
+      "text": "Each variable that is referenced by a decision’s expression must be associated with a required decision, required input data, or required knowledge."
+    },
+    {
+      "section": "7.1",
+      "page": "52",
+      "topic": "decision",
+      "strength": "SHOULD",
+      "text": "Also, each variable associated with the required decisions, required input data, and required knowledge SHOULD be referenced in the decision’s expression."
+    },
+    {
+      "section": "7.1",
+      "page": "52",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The input variables of a decision's decision logic must not be used outside that value expression or its component value expressions: the decision element defines the lexical scope of the input variables for its decision logic."
+    },
+    {
+      "section": "7.1",
+      "page": "52",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "To avoid name collisions and ambiguity, the name of a variable must be unique within its scope."
+    },
+    {
+      "section": "7.1",
+      "page": "52",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "When DRG elements are mapped to FEEL, the name of a variable is the same as the (possibly qualified) name of its associated input data or decision, which guarantees its uniqueness."
+    },
+    {
+      "section": "7.1",
+      "page": "52",
+      "topic": "bkm",
+      "strength": "SHOULD",
+      "text": "If a business knowledge model element requires one or more other business knowledge models, it SHOULD have an explicit value expression that describes how the required business knowledge models are invoked and their results combined or otherwise elaborated."
+    },
+    {
+      "section": "7.2.1",
+      "page": "53",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "This boxed expression SHALL have a name box that contains the name of the DRG artifact.",
+      "note": "The top-level boxed expression of a DRG element."
+    },
+    {
+      "section": "7.2.2.1",
+      "page": "54",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "To avoid having to discern whether (e.g.,) HIGH, DECLINE is \"HIGH,\" \"DECLINE,\" or \"HIGH, DECLINE,\" typographical string literals SHALL be free of commas (\",\" characters)."
+    },
+    {
+      "section": "7.2.2.1",
+      "page": "54",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "FEEL typographical string literals SHALL conform to grammar rule 22 (name).",
+      "note": "Rule 22 is 'name' in the S-FEEL grammar (9.2); in the FEEL grammar (10.3.1.2) 'name' is rule 25."
+    },
+    {
+      "section": "7.2.2.2",
+      "page": "54",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The literal SHALL obey the syntax specified in clauses 10.3.2.3.4, 10.3.2.3.5, and 10.3.2.3.7.",
+      "note": "Typographical date and time literals."
+    },
+    {
+      "section": "7.3.1",
+      "page": "56",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "An instance of Expression is a component of a Decision element, of a BusinessKnowledgeModel element, or of an ItemDefinition element, or it is a component of another instance of Expression, directly or indirectly."
+    },
+    {
+      "section": "7.3.1",
+      "page": "56",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "If an instance of Expression that defines the output of a Decision element includes a typeRef, the referenced type SHALL be the same as the type of the containing Decision element."
+    },
+    {
+      "section": "7.3.2",
+      "page": "57",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "An instance of UnaryTests inherits an optional typeRef from Expression, which SHALL NOT be used."
+    },
+    {
+      "section": "7.3.2; 7.3.5",
+      "page": "57",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The expressionLanguage SHALL be specified in a URI format.",
+      "note": "Same sentence for UnaryTests (7.3.2) and LiteralExpression (7.3.5)."
+    },
+    {
+      "section": "7.3.2",
+      "page": "57",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "When the expression language is FEEL, the text must conform to grammar rule 15 in section 10.3.1.2.",
+      "note": "UnaryTests.text."
+    },
+    {
+      "section": "7.3.2 (Table 25); 7.3.5 (Table 29)",
+      "page": "57",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "It SHALL be a valid expression in the expressionLanguage",
+      "note": "text of UnaryTests (Table 25) and of LiteralExpression (Table 29, where the extract reads 'express ionLanguage')."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The name of an ItemDefinition element SHALL be distinct from the names of other ItemDefinitions and Imports within the same model."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "itemDefinition",
+      "strength": "SHALL",
+      "text": "In the latter case, the external document SHALL be imported in the Definitions element that contains the instance of ItemDefinition, using an Import element specifying both the namespace value and its name when used a qualifier.",
+      "note": "'The latter case' = a typeRef to a type defined in an imported DMN, XSD or other document."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "itemDefinition",
+      "strength": "SHALL",
+      "text": "A typeRef referencing a built-in type SHALL omit the prefix."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "itemDefinition",
+      "strength": "SHALL",
+      "text": "In cases where the isCollection attribute of an ItemDefinition is true, each element of the collection must satisfy the UnaryTests of the allowedValues, i.e. the allowedValues are projected onto the collection elements."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "itemDefinition",
+      "strength": "SHOULD",
+      "text": "The allowedValues attribute has been deprecated as of DMN 1.5 and replaced with the typeConstraint attribute.",
+      "note": "Deprecation; a warning, not an error."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The name of an itemComponent (nested ItemDefinition) must be unique within its containing ItemDefinition or itemComponent."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "itemDefinition",
+      "strength": "SHALL",
+      "text": "An instance of ItemDefinition may contain at most one FunctionItem."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "itemDefinition",
+      "strength": "SHALL",
+      "text": "A FunctionItem may contain zero or more parameters defined as InformationItems and one output type defined as a typeRef.",
+      "note": "Table 27 makes outputTypeRef [0..1]."
+    },
+    {
+      "section": "7.3.3",
+      "page": "58",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The names of the parameters of a FunctionItem are unique."
+    },
+    {
+      "section": "7.3.3",
+      "page": "59",
+      "topic": "itemDefinition",
+      "strength": "SHALL",
+      "text": "An ItemDefinition element SHALL be defined using only one of the alternative ways:",
+      "note": "The three ways: reference to a built-in or imported typeRef (possibly restricted with allowedValues), composition of ItemDefinition elements, function signature element. The XSD enforces this with an xsd:choice."
+    },
+    {
+      "section": "7.3.4",
+      "page": "60",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "InformationItem is a concrete subclass of NamedElement, from which it inherits the id, and optional name, description, and label attributes, except that an InformationItem element SHALL have a name attribute, which is the name that is used to represent it in other Expression elements."
+    },
+    {
+      "section": "7.3.4",
+      "page": "60",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "The name of an InformationItem element SHALL be unique within its scope."
+    },
+    {
+      "section": "7.3.4",
+      "page": "60",
+      "topic": "decision",
+      "strength": "SHOULD",
+      "text": "A variable representing an instance of Decision or InputData referenced by aInformationRequirement SHOULD be referenced by the value expression of the decision logic in the Decision element that contains the InformationRequirement element.",
+      "note": "'aInformationRequirement' as printed."
+    },
+    {
+      "section": "7.3.4",
+      "page": "60",
+      "topic": "bkm",
+      "strength": "SHOULD",
+      "text": "A parameter in an instance of BusinessKnowledgeModel SHOULD be a variable in the value expression of that BusinessKnowledgeModel element."
+    },
+    {
+      "section": "7.3.4",
+      "page": "60",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "In any case, the datatype indicated by the typeRef that is associated with an instance of InformationItem SHALL be compatible with the datatype that is associated with the DMN model element from which it takes its value."
+    },
+    {
+      "section": "7.3.5",
+      "page": "61",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "An instance of LiteralExpression SHALL NOT have both a text and importedValues."
+    },
+    {
+      "section": "7.3.5",
+      "page": "61",
+      "topic": "import",
+      "strength": "SHALL",
+      "text": "The importType of the importedValues identifies the type of document containing the imported text and SHALL be consistent with the expressionLanguage of the LiteralExpression element."
+    },
+    {
+      "section": "7.3.5",
+      "page": "61",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The semantics of DMN decision models as described in this specification applies only if the text of all the instances of LiteralExpression in the model are valid expressions in their associated expression language."
+    },
+    {
+      "section": "7.3.6",
+      "page": "62",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "An Invocation contains a calledFunction, an Expression, which must evaluate to a function.",
+      "note": "Table 30 calledFunction [1] and XMI [1..1]; DMN16.xsd makes it optional (minOccurs=0)."
+    },
+    {
+      "section": "7.3.6",
+      "page": "62",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The binding is by matching the InformationItem names."
+    },
+    {
+      "section": "7.3.6",
+      "page": "62",
+      "topic": "expression",
+      "strength": "MAY",
+      "text": "Invocation MAY be used to model invocations in decision models, when a Decision element has exactly one knowledgeRequirement element, and when the decisionLogic in the Decision element consists only in invoking the BusinessKnowledgeModel element that is referenced by that requiredKnowledge and a more complex value expression is not required."
+    },
+    {
+      "section": "7.3.6",
+      "page": "62",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The calledFunction that is associated with the Invocation element SHALL BE the encapsultedLogic of the BusinessKnowledgeModel element that is required by the Decision element that contains the Invocation.",
+      "note": "Ignores Decision Services as invocables (6.3.9, 6.2.2.2)."
+    },
+    {
+      "section": "7.3.6",
+      "page": "62",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The Invocation element SHALL have exactly one binding for each parameter in the BusinessKnowledgeModel's encapsulatedLogic.",
+      "note": "Stronger than 7.3.7 ('a subset of the formalParameters')."
+    },
+    {
+      "section": "7.3.7",
+      "page": "62",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "A Binding is made of one bindingFormula, which is an Expression, and of one parameter, which is an InformationItem.",
+      "note": "Table 31 and DMN16.xsd make bindingFormula [0..1]."
+    },
+    {
+      "section": "7.3.7",
+      "page": "63",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "The parameter names in the Binding elements SHALL be a subset of the formalParameters of the calledFunction."
+    },
+    {
+      "section": "8.1",
+      "page": "65",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "Moreover, a complete table contains all possible combinations of input values (all the rules)."
+    },
+    {
+      "section": "8.1",
+      "page": "65",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "A single output clause has no name."
+    },
+    {
+      "section": "8.1",
+      "page": "65",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each of the multiple output clauses SHALL be named."
+    },
+    {
+      "section": "8.1",
+      "page": "65",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each output component SHALL be named."
+    },
+    {
+      "section": "8.1",
+      "page": "65",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each output (component) SHALL specify an output entry for each rule."
+    },
+    {
+      "section": "8.1",
+      "page": "65",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each annotation SHALL be named as part of a rule annotation clause."
+    },
+    {
+      "section": "8.1",
+      "page": "65",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "A list of output clauses (one or more)."
+    },
+    {
+      "section": "8.1",
+      "page": "65",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "A list of rules (one or more) in rows or columns of the table (depending on orientation), where each rule is composed of the specific input entries, output entries and optional rule annotations of the table row (or column).",
+      "note": "Table 32 (rule [*]) and DMN16.xsd (rule minOccurs=0) allow a table without rules."
+    },
+    {
+      "section": "8.1",
+      "page": "68",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "If two input entries of the same input expression share no values, the entries (cells) are called disjoint."
+    },
+    {
+      "section": "8.1",
+      "page": "68",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "‘Irrelevant’ (‘-’) overlaps with any input entry of the input expression."
+    },
+    {
+      "section": "8.1",
+      "page": "68",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "Two rules are overlapping if all corresponding input entries are overlapping."
+    },
+    {
+      "section": "8.1",
+      "page": "68",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "Two rules are disjoint (non-overlapping) if at least one pair of corresponding input expressions is disjoint."
+    },
+    {
+      "section": "8.2",
+      "page": "68",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "Rule numbering is required for tables with hit indicator F (first) or R (rule order) because the meaning depends on rule sequence."
+    },
+    {
+      "section": "8.2",
+      "page": "68",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Crosstab tables have no rule numbers."
+    },
+    {
+      "section": "8.2.2",
+      "page": "68",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "Crosstab tables can only have the default hit policy (see later)."
+    },
+    {
+      "section": "8.2.2",
+      "page": "69",
+      "topic": "decisionTable",
+      "strength": "SHOULD",
+      "text": "Decision table inputs and outputs should not be mixed."
+    },
+    {
+      "section": "8.2.2",
+      "page": "69",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "In a horizontal table, all input columns SHALL be represented on the left of all output columns.",
+      "note": "Notation."
+    },
+    {
+      "section": "8.2.2",
+      "page": "69",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "In a vertical table, all the input rows SHALL be represented above all output rows.",
+      "note": "Notation."
+    },
+    {
+      "section": "8.2.2",
+      "page": "69",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "In a crosstab, all the output cells SHALL be in the bottom-right part of the table.",
+      "note": "Notation."
+    },
+    {
+      "section": "8.2.4",
+      "page": "70",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "a decision table will be considered complete if its rules cover all combinations of expected input values for all input expressions."
+    },
+    {
+      "section": "8.2.4",
+      "page": "70",
+      "topic": "decisionTable",
+      "strength": "SHOULD",
+      "text": "Regardless of how the expected input values are modeled, input values SHOULD be exclusive and complete."
+    },
+    {
+      "section": "8.2.4",
+      "page": "70",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "Exclusive means that input values are disjoint."
+    },
+    {
+      "section": "8.2.4",
+      "page": "70",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "Complete means that all relevant input values from the domain are present."
+    },
+    {
+      "section": "8.2.4",
+      "page": "71",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The list of input values is optional. If provided, it is a list of unary tests that must be satisfied by the corresponding input."
+    },
+    {
+      "section": "8.2.5",
+      "page": "71",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "A decision table with multiple output components SHALL specify a name for each output component."
+    },
+    {
+      "section": "8.2.5",
+      "page": "71",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "A decision table that is the value expression of an InformationItem (e.g., a Decision's logic or a boxed Invocation's binding formula) SHALL specify the name of the InformationItem as its Information Item name."
+    },
+    {
+      "section": "8.2.6",
+      "page": "71",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The list of output values is optional. If provided, it is a list restricting output entries to the given list of values."
+    },
+    {
+      "section": "8.2.6",
+      "page": "71",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "When the hit policy is P (priority), meaning that multiple rules can match, but only one hit should be returned, the ordering of the list of output values is used to specify the (decreasing) priority."
+    },
+    {
+      "section": "8.2.6",
+      "page": "71",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "The ordering of the list of output values is also used when the hit policy is output order."
+    },
+    {
+      "section": "8.2.8",
+      "page": "72",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Rule input entries are unary tests (grammar rule 15)."
+    },
+    {
+      "section": "8.2.8",
+      "page": "72",
+      "topic": "decisionTable",
+      "strength": "SHOULD",
+      "text": "The input entries in a unary test SHOULD be ‘-’ or a subset of the input values specified."
+    },
+    {
+      "section": "8.2.8",
+      "page": "72",
+      "topic": "expression",
+      "strength": "SHOULD",
+      "text": "This means that evaluating an expression or executing a rule should not change the evaluation of other expressions or rules of the same table."
+    },
+    {
+      "section": "8.2.10",
+      "page": "73",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Rule output cells cannot be merged (except in crosstabs, where adjacent output cells with the same content can be merged).",
+      "note": "Also in 8.2.9."
+    },
+    {
+      "section": "8.2.10.1",
+      "page": "73",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Because there can be only one output entry for an output name, every rule must indicate no more than one ‘X’.",
+      "note": "Shorthand notation in vertical tables."
+    },
+    {
+      "section": "8.2.10.1",
+      "page": "73",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The other output entries must contain ‘-’.",
+      "note": "Shorthand notation in vertical tables."
+    },
+    {
+      "section": "8.2.10.1",
+      "page": "73",
+      "topic": "naming",
+      "strength": "SHALL",
+      "text": "If an information item name is provided, and there is only one output name (which has to be equal to the information item name), the output name is optional."
+    },
+    {
+      "section": "8.2.11",
+      "page": "73",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "If rules overlap, meaning that more than one rule may match a given set of input values, the hit policy indicator is required in order to recognize the table type and unambiguously understand the decision logic."
+    },
+    {
+      "section": "8.2.11",
+      "page": "74",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "Crosstab tables are always Unique and need no indicator."
+    },
+    {
+      "section": "8.2.11",
+      "page": "74",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "The hit policy SHALL default to Unique, in which case the hit indicator is optional."
+    },
+    {
+      "section": "8.2.11",
+      "page": "74",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "Decision tables with the Unique hit policy SHALL NOT contain overlapping rules."
+    },
+    {
+      "section": "8.2.11",
+      "page": "74",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "the table type SHALL be clear and therefore the hit policy indication is mandatory, except for the default unique tables.",
+      "note": "Model part of a sentence that starts with tool conformance ('Tools may support only a nonempty subset of hit policies, but ...')."
+    },
+    {
+      "section": "8.2.11.1",
+      "page": "74",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "A single hit table shall return the output of one rule only; a multiple hit table may return the output of multiple rules (or a function of the outputs, e.g., sum of values)."
+    },
+    {
+      "section": "8.2.11.1",
+      "page": "74",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "If the output entries are non-equal (ignoring rule annotations), the hit policy is incorrect, and the result is undefined.",
+      "note": "Any hit policy: overlapping rules must have equal output entries."
+    },
+    {
+      "section": "8.2.11.1",
+      "page": "75",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "Decision tables with compound outputs support only the following hit policies: Unique, Any, Priority, First, Output order, Rule order and Collect without operator, because the collect operator is undefined over multiple outputs.",
+      "note": "Contradicted by 10.3.2.10 (printed page 120), which omits Output order."
+    },
+    {
+      "section": "8.2.11.1",
+      "page": "75",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "For the Priority and Output order hit policies, priority is decided in compound output tables over all the outputs for which output values have been provided (ignoring rule annotations)."
+    },
+    {
+      "section": "8.2.11.1 (Note 1)",
+      "page": "75",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "Crosstab tables are unique and complete by definition and therefore do not need a hit policy."
+    },
+    {
+      "section": "8.2.11.1 (Note 2)",
+      "page": "75",
+      "topic": "hitPolicy",
+      "strength": "DEFINITION",
+      "text": "The sequence of the rules in a decision table does not influence the meaning, except in First tables (single hit) and Rule order tables (multiple hit)."
+    },
+    {
+      "section": "8.3.1",
+      "page": "76",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "It has a preferredOrientation, which SHALL be one of the enumerated DecisionTableOrientation: Rule-as-Row, Rule-as-Column or CrossTable."
+    },
+    {
+      "section": "8.3.1",
+      "page": "76",
+      "topic": "decisionTable",
+      "strength": "SHOULD",
+      "text": "An instance of DecisionTable SHOULD BE represented as specified by its preferredOrientation, as defined in clause 8.2.2."
+    },
+    {
+      "section": "8.3.1",
+      "page": "76",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "An instance of DecisionTable has an associated hitPolicy, which SHALL be one of the enumerated HitPolicy: UNIQUE, FIRST, PRIORITY, ANY, COLLECT, RULE ORDER, OUTPUT ORDER."
+    },
+    {
+      "section": "8.3.1",
+      "page": "76",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "The default value for the hitPolicy attribute is: UNIQUE."
+    },
+    {
+      "section": "8.3.1",
+      "page": "77",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "If the hitPolicy associated with an instance of DecisionTable is FIRST or RULE ORDER, the rules that are associated with the DecisionTable SHALL be ordered."
+    },
+    {
+      "section": "8.3.1",
+      "page": "77",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "If the hitPolicy associated with an instance of DecisionTable is PRIORITY or OUTPUT ORDER, the outputValues determine the result as specified in clause 8.2.11.",
+      "note": "The extract reads 'outputValue s'."
+    },
+    {
+      "section": "8.3.1",
+      "page": "77",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "If the hitPolicy that is associated with an instance of DecisionTable is COLLECT, the DecisionTable MAY have an associated aggregation, which is one of the enumerated BuiltinAggregator (see clause 8.2.11).",
+      "note": "Implies: aggregation only with COLLECT."
+    },
+    {
+      "section": "8.3.1 (Table 32)",
+      "page": "77",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "If present, this attribute specifies the aggregation function to be applied to the unordered set of values of the applicable rules to determine the value of this DecisionTable when the hitPolicy is COLLECT.",
+      "note": "DecisionTable.aggregation."
+    },
+    {
+      "section": "8.3.2",
+      "page": "78",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "When a DecisionTable contains more than one OutputClause, each OutputClause SHALL have a name."
+    },
+    {
+      "section": "8.3.2",
+      "page": "78",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "When a DecisionTable has a single OutputClause, the OutputClause SHALL NOT have a name."
+    },
+    {
+      "section": "8.3.2",
+      "page": "78",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "A RuleAnnotationClause SHALL have a name."
+    },
+    {
+      "section": "8.3.2 (Table 34)",
+      "page": "78",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The OutputClause of a single output decision table SHALL NOT specify a typeRef.",
+      "note": "Same table row gives the multiplicity typeRef: String [1]."
+    },
+    {
+      "section": "8.3.3",
+      "page": "79",
+      "topic": "decisionTable",
+      "strength": "DEFINITION",
+      "text": "By definition, a DecisionRule element that has no inputEntrys is always applicable."
+    },
+    {
+      "section": "8.3.3",
+      "page": "79",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The inputEntry elements SHALL be in the same order as the containing DecisionTable's inputs."
+    },
+    {
+      "section": "8.3.3",
+      "page": "79",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The outputEntry elements SHALL be in the same order as the containing DecisionTable's outputs."
+    },
+    {
+      "section": "8.3.3",
+      "page": "79",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The ith outputEntry SHALL be consistent with the typeRef of the ith OutputClause."
+    },
+    {
+      "section": "8.3.3",
+      "page": "79",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The ruleAnnotation elements SHALL be in the same order as the containing DecisionTable's annotations."
+    },
+    {
+      "section": "9.5.1",
+      "page": "86",
+      "topic": "itemDefinition",
+      "strength": "SHALL",
+      "text": "The expression that defines an allowed value SHALL be an instance of simple unary tests (grammar rule 12), where only the values in the defined or referenced type that satisfy the test are allowed values.",
+      "note": "Applies when the expression language is S-FEEL (9.5)."
+    },
+    {
+      "section": "9.5.2",
+      "page": "86",
+      "topic": "expression",
+      "strength": "SHALL",
+      "text": "In the bindings of an invocation, the binding formula SHALL be a simple expression (grammar rule 3).",
+      "note": "Applies when the expression language is S-FEEL (9.5)."
+    },
+    {
+      "section": "9.5.3",
+      "page": "86",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each input expression SHALL be a simple expression (grammar rule 3).",
+      "note": "Applies when the expression language is S-FEEL (9.5)."
+    },
+    {
+      "section": "9.5.3",
+      "page": "86",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each list of input values SHALL be an instance of simple unary tests (grammar rule 12).",
+      "note": "Applies when the expression language is S-FEEL (9.5)."
+    },
+    {
+      "section": "9.5.3",
+      "page": "87",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each list of output values SHALL be an instance of simple unary tests (grammar rule 12).",
+      "note": "Applies when the expression language is S-FEEL (9.5)."
+    },
+    {
+      "section": "9.5.3",
+      "page": "87",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each input entry SHALL be an instance of simple unary tests (grammar rule 12).",
+      "note": "Applies when the expression language is S-FEEL (9.5)."
+    },
+    {
+      "section": "9.5.3",
+      "page": "87",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each output entry SHALL be a simple expression (grammar rule 3).",
+      "note": "Applies when the expression language is S-FEEL (9.5)."
+    },
+    {
+      "section": "10.3.2.10",
+      "page": "118",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each input expression SHALL be a textual expression (grammar rule 2).",
+      "note": "FEEL counterpart of 9.5.3."
+    },
+    {
+      "section": "10.3.2.10",
+      "page": "118",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each list of input values SHALL be an instance of unary tests (grammar rule 15).",
+      "note": "FEEL counterpart of 9.5.3."
+    },
+    {
+      "section": "10.3.2.10",
+      "page": "118",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each list of output values SHALL be an instance of unary tests (grammar rule 15).",
+      "note": "FEEL counterpart of 9.5.3."
+    },
+    {
+      "section": "10.3.2.10",
+      "page": "118",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "Each input entry SHALL be an instance of unary tests (grammar rule 15).",
+      "note": "FEEL counterpart of 9.5.3."
+    },
+    {
+      "section": "10.3.2.10 (Table 46)",
+      "page": "119",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "The default output value is one of the output values."
+    },
+    {
+      "section": "10.3.2.10",
+      "page": "120",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "To reduce complexity, decision tables with compound outputs do not support aggregation and support only the following hit policies: Unique, Any, Priority, First, Collect without operator, and Rule order.",
+      "note": "Omits Output order, which 8.2.11.1 allows for compound outputs."
+    },
+    {
+      "section": "10.3.2.10",
+      "page": "120",
+      "topic": "decisionTable",
+      "strength": "SHALL",
+      "text": "A complete decision table SHALL NOT specify a default output value."
+    },
+    {
+      "section": "10.3.2.10",
+      "page": "120",
+      "topic": "hitPolicy",
+      "strength": "SHALL",
+      "text": "If the hit policy is \"Output order\", the decision table SHALL be single output",
+      "note": "Contradicts 8.2.11.1 and Figure 8-19 ('Output order with compound output')."
+    }
+  ]
+}

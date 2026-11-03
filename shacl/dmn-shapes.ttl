@@ -1,0 +1,462 @@
+@prefix dmn:   <https://w3id.org/dmn#> .
+@prefix dmnsh: <https://w3id.org/dmn/shapes#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:   <http://purl.org/dc/terms/> .
+
+#################################################################
+# DMN 1.6 in RDF: SHACL shapes for graph integrity, names and the
+# structure of decision tables.
+#
+# Every shape points to the sentence of the specification it checks
+# (dmn-rules.ttl, dmn:checkedBy). What SHACL cannot decide (overlap,
+# completeness, values outside the allowed list) is computed by
+# tools/beslistabel.py; those checks are declared at the end of this
+# file so that the catalogue can point to them as well.
+#
+# Load dmn.ttl and dmn-matrix.ttl in the data graph, as with the
+# ArchiMate and BPMN shapes.
+# sh:severity goes on the property shape itself: on the node shape it does
+# not reach the results of its property shapes.
+#################################################################
+
+<https://w3id.org/dmn/shapes>
+    a owl:Ontology ;
+    rdfs:label "DMN 1.6 in RDF: SHACL shapes"@en , "DMN 1.6 in RDF: SHACL-shapes"@nl ;
+    owl:imports <https://w3id.org/dmn> ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    owl:versionInfo "0.1.0" ;
+    sh:declare [ sh:prefix "dmn" ; sh:namespace "https://w3id.org/dmn#"^^xsd:anyURI ] ,
+               [ sh:prefix "rdf" ; sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ] ,
+               [ sh:prefix "rdfs" ; sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ] .
+
+dmn:ComputedCheck a owl:Class ;
+    rdfs:label "Computed check"@en , "Berekende controle"@nl ;
+    rdfs:comment "A check that SHACL cannot express, computed by tools/beslistabel.py over the S-FEEL cells of a decision table. Its results use the same SHACL report vocabulary, with this resource as sh:sourceShape."@en .
+
+# --- Requirements: one target, of the right kind -------------------------
+
+dmnsh:InformationRequirementShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:InformationRequirement ;
+    sh:xone ( [ sh:path dmn:requiredDecision ; sh:minCount 1 ]
+              [ sh:path dmn:requiredInput ; sh:minCount 1 ] ) ;
+    sh:property [ sh:path dmn:requiredDecision ; sh:maxCount 1 ] ,
+                [ sh:path dmn:requiredInput ; sh:maxCount 1 ] ;
+    sh:message "An information requirement references a required decision or a required input data element in the model, but not both."@en ,
+               "Een informatievereiste verwijst naar een vereiste beslissing of een vereist invoergegeven in het model, niet naar allebei."@nl ,
+               "Eine Informationsanforderung verweist auf eine benötigte Entscheidung oder ein benötigtes Eingabedatum im Modell, nicht auf beide."@de ,
+               "Une exigence d'information référence une décision requise ou une donnée d'entrée requise du modèle, mais pas les deux."@fr .
+
+dmnsh:KnowledgeRequirementShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:KnowledgeRequirement ;
+    sh:property [ sh:path dmn:requiredKnowledge ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A knowledge requirement references exactly one business knowledge model or decision service in the model."@en ,
+                   "Een kennisvereiste verwijst naar precies één rekenmodule of beslisservice in het model."@nl ,
+                   "Eine Wissensanforderung verweist auf genau ein Geschäftswissensmodell oder einen Entscheidungsdienst im Modell."@de ,
+                   "Une exigence de connaissance référence exactement un modèle de connaissance métier ou un service de décision du modèle."@fr ] .
+
+dmnsh:AuthorityRequirementShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:AuthorityRequirement ;
+    sh:xone ( [ sh:path dmn:requiredAuthority ; sh:minCount 1 ]
+              [ sh:path dmn:requiredDecision ; sh:minCount 1 ]
+              [ sh:path dmn:requiredInput ; sh:minCount 1 ] ) ;
+    sh:property [ sh:path dmn:requiredAuthority ; sh:maxCount 1 ] ,
+                [ sh:path dmn:requiredDecision ; sh:maxCount 1 ] ,
+                [ sh:path dmn:requiredInput ; sh:maxCount 1 ] ;
+    sh:message "An authority requirement references exactly one knowledge source, decision or input data element in the model."@en ,
+               "Een autoriteitsvereiste verwijst naar precies één kennisbron, beslissing of invoergegeven in het model."@nl ,
+               "Eine Autoritätsanforderung verweist auf genau eine Wissensquelle, Entscheidung oder ein Eingabedatum im Modell."@de ,
+               "Une exigence d'autorité référence exactement une source de connaissance, une décision ou une donnée d'entrée du modèle."@fr .
+
+dmnsh:RequirementReferenceShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:Definitions ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A requirement in this model points to an element (sh:value) that is neither in this model nor in a model it imports, or that is of the wrong kind."@en ,
+                   "Een vereiste in dit model wijst naar een element (sh:value) dat niet in dit model staat en ook niet in een model dat het importeert, of dat van de verkeerde soort is."@nl ,
+                   "Eine Anforderung in diesem Modell verweist auf ein Element (sh:value), das weder in diesem Modell noch in einem importierten Modell steht oder von der falschen Art ist."@de ,
+                   "Une exigence de ce modèle pointe vers un élément (sh:value) qui n'est ni dans ce modèle ni dans un modèle importé, ou qui n'est pas du bon type."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this dmn:drgElement ?e .
+                ?e (dmn:informationRequirement|dmn:knowledgeRequirement|dmn:authorityRequirement) ?r .
+                ?r ?p ?value .
+                FILTER (?p IN (dmn:requiredDecision, dmn:requiredInput, dmn:requiredKnowledge, dmn:requiredAuthority))
+                BIND (IF(?p = dmn:requiredDecision, dmn:Decision,
+                      IF(?p = dmn:requiredInput, dmn:InputData,
+                      IF(?p = dmn:requiredAuthority, dmn:KnowledgeSource, dmn:Invocable))) AS ?klasse)
+                FILTER NOT EXISTS { ?value a/rdfs:subClassOf* ?klasse }
+                FILTER NOT EXISTS { $this dmn:import/dmn:namespace ?ns . FILTER (STRSTARTS(STR(?value), STR(?ns))) }
+            }
+        """ ;
+    ] .
+
+# --- The requirement graph has no cycles ---------------------------------
+
+dmnsh:InformationAcyclicShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:Decision ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This decision depends on itself through information requirements; the information requirements of a valid DRG form a directed acyclic graph."@en ,
+                   "Deze beslissing hangt via informatievereisten van zichzelf af; de informatievereisten van een geldige DRG vormen een gerichte graaf zonder kringen."@nl ,
+                   "Diese Entscheidung hängt über Informationsanforderungen von sich selbst ab; die Informationsanforderungen eines gültigen DRG bilden einen gerichteten azyklischen Graphen."@de ,
+                   "Cette décision dépend d'elle-même par des exigences d'information ; les exigences d'information d'un DRG valide forment un graphe orienté acyclique."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this WHERE {
+                $this (dmn:informationRequirement/dmn:requiredDecision)+ $this .
+            }
+        """ ;
+    ] .
+
+dmnsh:KnowledgeAcyclicShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:BusinessKnowledgeModel ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This business knowledge model requires itself through knowledge requirements."@en ,
+                   "Deze rekenmodule heeft via kennisvereisten zichzelf nodig."@nl ,
+                   "Dieses Geschäftswissensmodell benötigt sich selbst über Wissensanforderungen."@de ,
+                   "Ce modèle de connaissance métier se requiert lui-même par des exigences de connaissance."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this WHERE {
+                $this (dmn:knowledgeRequirement/dmn:requiredKnowledge)+ $this .
+            }
+        """ ;
+    ] .
+
+# --- Names -----------------------------------------------------------------
+# These two shapes target the model and report the element as sh:value: one
+# query per model, not one per element (pyshacl runs a SPARQL constraint per
+# focus node, which made a model with fifty elements take a quarter minute).
+
+dmnsh:UniqueNameShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:Definitions ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Two decisions, business knowledge models, decision services or input data elements in this model have the same name (sh:value is one of them)."@en ,
+                   "Twee beslissingen, rekenmodules, beslisservices of invoergegevens in dit model hebben dezelfde naam (sh:value is er een van)."@nl ,
+                   "Zwei Entscheidungen, Geschäftswissensmodelle, Entscheidungsdienste oder Eingabedaten in diesem Modell haben denselben Namen (sh:value ist eines davon)."@de ,
+                   "Deux décisions, modèles de connaissance métier, services de décision ou données d'entrée de ce modèle portent le même nom (sh:value en est un)."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this (?ander AS ?value) WHERE {
+                $this dmn:drgElement ?een , ?ander .
+                FILTER (?ander != ?een)
+                ?een dmn:name ?naam .
+                ?ander dmn:name ?naam .
+                ?een a ?k1 .
+                FILTER (?k1 IN (dmn:Decision, dmn:BusinessKnowledgeModel, dmn:DecisionService, dmn:InputData))
+                ?ander a ?k .
+                FILTER (?k IN (dmn:Decision, dmn:BusinessKnowledgeModel, dmn:DecisionService, dmn:InputData))
+            }
+        """ ;
+    ] .
+
+dmnsh:VariableNameShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:Definitions ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "The variable of an element in this model (sh:value) has another name than the element itself; they SHALL be the same."@en ,
+                   "De variabele van een element in dit model (sh:value) heeft een andere naam dan het element zelf; die moeten gelijk zijn."@nl ,
+                   "Die Variable eines Elements in diesem Modell (sh:value) hat einen anderen Namen als das Element selbst; beide SHALL gleich sein."@de ,
+                   "La variable d'un élément de ce modèle (sh:value) porte un autre nom que l'élément lui-même ; ils SHALL être identiques."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this (?element AS ?value) WHERE {
+                $this dmn:drgElement ?element .
+                ?element dmn:name ?naam ; dmn:variable ?v .
+                ?v dmn:name ?vnaam .
+                FILTER (STR(?vnaam) != STR(?naam))
+            }
+        """ ;
+    ] .
+
+# --- Decision tables -------------------------------------------------------
+
+dmnsh:DecisionTableOutputShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:property [ sh:path dmn:output ; sh:minCount 1 ;
+        sh:message "A decision table has a list of output clauses (one or more)."@en ,
+                   "Een beslistabel heeft een of meer uitvoerkolommen."@nl ,
+                   "Eine Entscheidungstabelle hat eine oder mehrere Ausgabeklauseln."@de ,
+                   "Une table de décision a une ou plusieurs clauses de sortie."@fr ] .
+
+dmnsh:DecisionTableRulesShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:property [ sh:path dmn:rule ; sh:minCount 1 ; sh:severity sh:Warning ;
+        sh:message "This decision table has no rules. Clause 8.1 asks for one or more; Table 32 and the XSD allow none."@en ,
+                   "Deze beslistabel heeft geen regels. Clausule 8.1 vraagt er een of meer; Tabel 32 en de XSD staan nul toe."@nl ,
+                   "Diese Entscheidungstabelle hat keine Regeln. Abschnitt 8.1 verlangt eine oder mehrere; Tabelle 32 und das XSD erlauben keine."@de ,
+                   "Cette table de décision n'a aucune règle. La clause 8.1 en demande une ou plusieurs ; le tableau 32 et le XSD en permettent zéro."@fr ] .
+
+dmnsh:OutputNameShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This decision table has more than one output clause, and not every output clause has a name."@en ,
+                   "Deze beslistabel heeft meer dan één uitvoerkolom, en niet elke uitvoerkolom heeft een naam."@nl ,
+                   "Diese Entscheidungstabelle hat mehr als eine Ausgabeklausel, und nicht jede Ausgabeklausel hat einen Namen."@de ,
+                   "Cette table de décision a plusieurs clauses de sortie, et chaque clause de sortie n'a pas de nom."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this (?uit AS ?value) WHERE {
+                $this dmn:output ?uit , ?ander .
+                FILTER (?uit != ?ander)
+                FILTER NOT EXISTS { ?uit dmn:name ?n . FILTER (STRLEN(STR(?n)) > 0) }
+            }
+        """ ;
+    ] .
+
+dmnsh:SingleOutputNameShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "The only output clause of this decision table has a name or a typeRef. Clause 8.3.2 says it SHALL NOT have either; the output takes the name and type of the decision's variable."@en ,
+                   "De enige uitvoerkolom van deze beslistabel heeft een naam of een typeRef. Volgens clausule 8.3.2 mag dat niet; de uitkomst krijgt naam en type van de variabele van de beslissing."@nl ,
+                   "Die einzige Ausgabeklausel dieser Entscheidungstabelle hat einen Namen oder eine typeRef. Nach Abschnitt 8.3.2 SHALL sie keines von beiden haben."@de ,
+                   "L'unique clause de sortie de cette table de décision a un nom ou un typeRef. Selon la clause 8.3.2, elle SHALL NOT avoir ni l'un ni l'autre."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this (?uit AS ?value) WHERE {
+                $this dmn:output ?uit .
+                FILTER NOT EXISTS { $this dmn:output ?ander . FILTER (?ander != ?uit) }
+                { ?uit dmn:name ?n . FILTER (STRLEN(STR(?n)) > 0) } UNION { ?uit dmn:typeRef ?t }
+            }
+        """ ;
+    ] .
+
+dmnsh:AnnotationClauseNameShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:RuleAnnotationClause ;
+    sh:property [ sh:path dmn:name ; sh:minCount 1 ;
+        sh:message "A rule annotation clause SHALL have a name."@en ,
+                   "Een annotatiekolom moet een naam hebben."@nl ,
+                   "Eine Regelannotationsklausel SHALL einen Namen haben."@de ,
+                   "Une clause d'annotation de règle SHALL avoir un nom."@fr ] .
+
+dmnsh:EntryCountShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A rule of this decision table does not have one input entry per input clause and one output entry per output clause."@en ,
+                   "Een regel van deze beslistabel heeft niet één invoercel per invoerkolom en één uitvoercel per uitvoerkolom."@nl ,
+                   "Eine Regel dieser Entscheidungstabelle hat nicht einen Eingabeeintrag je Eingabeklausel und einen Ausgabeeintrag je Ausgabeklausel."@de ,
+                   "Une règle de cette table de décision n'a pas une entrée par clause d'entrée et une sortie par clause de sortie."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this (?regel AS ?value) WHERE {
+                $this dmn:rule ?regel .
+                { SELECT $this (COUNT(DISTINCT ?i) AS ?ni) (COUNT(DISTINCT ?o) AS ?no) WHERE {
+                    $this a dmn:DecisionTable .
+                    OPTIONAL { $this dmn:input ?i }
+                    OPTIONAL { $this dmn:output ?o }
+                  } GROUP BY $this }
+                { SELECT ?regel (COUNT(DISTINCT ?ie) AS ?nie) (COUNT(DISTINCT ?oe) AS ?noe) WHERE {
+                    ?regel a dmn:DecisionRule .
+                    OPTIONAL { ?regel dmn:inputEntry ?ie }
+                    OPTIONAL { ?regel dmn:outputEntry ?oe }
+                  } GROUP BY ?regel }
+                FILTER ((?nie != ?ni && ?nie != 0) || ?noe != ?no)
+            }
+        """ ;
+    ] .
+
+dmnsh:AggregationShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This decision table has an aggregation, which is only allowed with hit policy COLLECT and a single output."@en ,
+                   "Deze beslistabel heeft een aggregatie; dat mag alleen bij hit policy COLLECT en één uitvoerkolom."@nl ,
+                   "Diese Entscheidungstabelle hat eine Aggregation, die nur mit der Trefferrichtlinie COLLECT und einer einzigen Ausgabe erlaubt ist."@de ,
+                   "Cette table de décision a une agrégation, autorisée seulement avec la politique de résultat COLLECT et une seule sortie."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this (?agg AS ?value) WHERE {
+                $this dmn:aggregation ?agg .
+                OPTIONAL { $this dmn:hitPolicy ?hp }
+                OPTIONAL { $this dmn:output ?o1 , ?o2 . FILTER (?o1 != ?o2) }
+                FILTER (!BOUND(?hp) || ?hp != dmn:HitPolicy-COLLECT || BOUND(?o1))
+            }
+        """ ;
+    ] .
+
+dmnsh:CompoundHitPolicyShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "Hit policy OUTPUT ORDER with more than one output clause. Clause 8.2.11.1 allows it (Figure 8-19); clause 10.3.2.10 says the table SHALL be single output. The specification contradicts itself, so engines may differ."@en ,
+                   "Hit policy OUTPUT ORDER met meer dan één uitvoerkolom. Clausule 8.2.11.1 staat het toe (figuur 8-19); clausule 10.3.2.10 eist één uitvoerkolom. De specificatie spreekt zichzelf tegen, dus uitvoeringsomgevingen kunnen verschillen."@nl ,
+                   "Trefferrichtlinie OUTPUT ORDER mit mehr als einer Ausgabeklausel. Abschnitt 8.2.11.1 erlaubt es (Abbildung 8-19); Abschnitt 10.3.2.10 verlangt eine einzige Ausgabe. Die Spezifikation widerspricht sich."@de ,
+                   "Politique de résultat OUTPUT ORDER avec plusieurs clauses de sortie. La clause 8.2.11.1 l'autorise (figure 8-19) ; la clause 10.3.2.10 exige une seule sortie. La spécification se contredit."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this WHERE {
+                $this dmn:hitPolicy dmn:HitPolicy-OUTPUT_ORDER ; dmn:output ?o1 , ?o2 .
+                FILTER (?o1 != ?o2)
+            }
+        """ ;
+    ] .
+
+dmnsh:OutputValuesNeededShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "With hit policy PRIORITY or OUTPUT ORDER the ordered list of output values decides the result, and no output clause of this table has one."@en ,
+                   "Bij hit policy PRIORITY of OUTPUT ORDER bepaalt de volgorde van de uitvoerwaarden de uitkomst, en geen uitvoerkolom van deze tabel heeft die."@nl ,
+                   "Bei der Trefferrichtlinie PRIORITY oder OUTPUT ORDER entscheidet die geordnete Liste der Ausgabewerte, und keine Ausgabeklausel dieser Tabelle hat eine."@de ,
+                   "Avec la politique PRIORITY ou OUTPUT ORDER, la liste ordonnée des valeurs de sortie décide du résultat, et aucune clause de sortie de cette table n'en a."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this dmn:hitPolicy ?value .
+                ?value dmn:needsOutputValues true .
+                FILTER NOT EXISTS { $this dmn:output/dmn:outputValues/dmn:text ?t }
+            }
+        """ ;
+    ] .
+
+dmnsh:CrosstabShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionTable ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A crosstab decision table can only have the default hit policy UNIQUE."@en ,
+                   "Een kruistabel kan alleen de standaard hit policy UNIQUE hebben."@nl ,
+                   "Eine Kreuztabelle kann nur die Standard-Trefferrichtlinie UNIQUE haben."@de ,
+                   "Une table croisée ne peut avoir que la politique par défaut UNIQUE."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this dmn:preferredOrientation dmn:DecisionTableOrientation-CrossTable ; dmn:hitPolicy ?value .
+                FILTER (?value != dmn:HitPolicy-UNIQUE)
+            }
+        """ ;
+    ] .
+
+# --- Decision services, item definitions, expressions ----------------------
+
+dmnsh:DecisionServiceOutputShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionService ;
+    sh:property [ sh:path dmn:outputDecision ; sh:minCount 1 ; sh:severity sh:Warning ;
+        sh:message "This decision service has no output decision. Clause 6.3.10 asks for one or more; DMN16.xsd and DMN16.xmi allow none."@en ,
+                   "Deze beslisservice heeft geen uitvoerbeslissing. Clausule 6.3.10 vraagt er een of meer; DMN16.xsd en DMN16.xmi staan nul toe."@nl ,
+                   "Dieser Entscheidungsdienst hat keine Ausgabeentscheidung. Abschnitt 6.3.10 verlangt eine oder mehrere; DMN16.xsd und DMN16.xmi erlauben keine."@de ,
+                   "Ce service de décision n'a aucune décision de sortie. La clause 6.3.10 en demande une ou plusieurs ; DMN16.xsd et DMN16.xmi en permettent zéro."@fr ] .
+
+dmnsh:DecisionServiceContentShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:DecisionService ;
+    sh:or ( [ sh:path dmn:encapsulatedDecision ; sh:minCount 1 ] [ sh:path dmn:inputDecision ; sh:minCount 1 ] ) ;
+    sh:message "At least one of the encapsulated decisions and the input decisions of a decision service SHALL be specified."@en ,
+               "Van een beslisservice moeten de ingesloten beslissingen of de invoerbeslissingen zijn opgegeven."@nl ,
+               "Bei einem Entscheidungsdienst SHALL mindestens die gekapselten Entscheidungen oder die Eingabeentscheidungen angegeben sein."@de ,
+               "Pour un service de décision, au moins les décisions encapsulées ou les décisions d'entrée SHALL être indiquées."@fr .
+
+dmnsh:UnaryTestsTypeRefShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:UnaryTests ;
+    sh:property [ sh:path dmn:typeRef ; sh:maxCount 0 ;
+        sh:message "UnaryTests inherits an optional typeRef from Expression, which SHALL NOT be used."@en ,
+                   "UnaryTests erft van Expression een typeRef die niet gebruikt mag worden."@nl ,
+                   "UnaryTests erbt von Expression eine optionale typeRef, die SHALL NOT verwendet werden."@de ,
+                   "UnaryTests hérite d'Expression un typeRef facultatif, qui SHALL NOT être utilisé."@fr ] .
+
+dmnsh:ItemDefinitionShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:ItemDefinition ;
+    sh:property [ sh:path dmn:functionItem ; sh:maxCount 1 ;
+        sh:message "An item definition may contain at most one function item."@en ,
+                   "Een gegevenstype mag hoogstens één functie-item bevatten."@nl ,
+                   "Eine Elementdefinition darf höchstens ein Funktionselement enthalten."@de ,
+                   "Une définition d'élément peut contenir au plus un élément de fonction."@fr ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This item definition is defined in more than one of the alternative ways (typeRef, item components, function item); only one is allowed."@en ,
+                   "Dit gegevenstype is op meer dan één manier gedefinieerd (typeRef, onderdelen, functie-item); er mag er maar één zijn."@nl ,
+                   "Diese Elementdefinition ist auf mehr als eine der alternativen Arten definiert (typeRef, Komponenten, Funktionselement); nur eine ist erlaubt."@de ,
+                   "Cette définition d'élément est définie de plusieurs façons (typeRef, composants, élément de fonction) ; une seule est permise."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this WHERE {
+                { $this dmn:typeRef ?t . $this dmn:itemComponent ?c . } UNION
+                { $this dmn:typeRef ?t . $this dmn:functionItem ?f . } UNION
+                { $this dmn:itemComponent ?c . $this dmn:functionItem ?f . }
+            }
+        """ ;
+    ] .
+
+dmnsh:AllowedValuesDeprecatedShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf dmn:allowedValues ;
+    sh:property [ sh:path dmn:allowedValues ; sh:maxCount 0 ; sh:severity sh:Info ;
+        sh:message "allowedValues is deprecated as of DMN 1.5; use typeConstraint."@en ,
+                   "allowedValues is sinds DMN 1.5 verouderd; gebruik typeConstraint."@nl ,
+                   "allowedValues ist seit DMN 1.5 veraltet; verwenden Sie typeConstraint."@de ,
+                   "allowedValues est obsolète depuis DMN 1.5 ; utilisez typeConstraint."@fr ] .
+
+dmnsh:InformationItemNameShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:InformationItem ;
+    sh:property [ sh:path dmn:name ; sh:minCount 1 ;
+        sh:message "An information item SHALL have a name."@en ,
+                   "Een informatie-item moet een naam hebben."@nl ,
+                   "Ein Informationselement SHALL einen Namen haben."@de ,
+                   "Un élément d'information SHALL avoir un nom."@fr ] .
+
+dmnsh:LiteralExpressionShape
+    a sh:NodeShape ;
+    sh:targetClass dmn:LiteralExpression ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A literal expression SHALL NOT have both a text and imported values."@en ,
+                   "Een letterlijke expressie mag niet zowel tekst als geïmporteerde waarden hebben."@nl ,
+                   "Ein Literalausdruck SHALL NOT sowohl Text als auch importierte Werte haben."@de ,
+                   "Une expression littérale SHALL NOT avoir à la fois un texte et des valeurs importées."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes> ;
+        sh:select """
+            SELECT $this WHERE { $this dmn:text ?t ; dmn:importedValues ?i . }
+        """ ;
+    ] .
+
+# --- Checks computed by tools/beslistabel.py --------------------------------
+
+dmnsh:UniqueOverlap a dmn:ComputedCheck ;
+    rdfs:label "Overlapping rules in a UNIQUE table"@en , "Overlappende regels in een UNIQUE-tabel"@nl .
+dmnsh:AnyConflict a dmn:ComputedCheck ;
+    rdfs:label "Overlapping rules with different outputs in an ANY table"@en , "Overlappende regels met een andere uitkomst in een ANY-tabel"@nl .
+dmnsh:MaskedRule a dmn:ComputedCheck ;
+    rdfs:label "Rule that never applies"@en , "Regel die nooit geldt"@nl .
+dmnsh:Gap a dmn:ComputedCheck ;
+    rdfs:label "Input combinations no rule covers"@en , "Invoercombinaties waarvoor geen regel geldt"@nl .
+dmnsh:EntryOutsideInputValues a dmn:ComputedCheck ;
+    rdfs:label "Input entry outside the input values"@en , "Invoercel buiten de invoerwaarden"@nl .
+dmnsh:OutputOutsideOutputValues a dmn:ComputedCheck ;
+    rdfs:label "Output entry outside the output values"@en , "Uitvoercel buiten de uitvoerwaarden"@nl .
+dmnsh:DefaultOutputValue a dmn:ComputedCheck ;
+    rdfs:label "Default output value not among the output values, or on a complete table"@en ,
+               "Standaarduitkomst buiten de uitvoerwaarden, of bij een volledige tabel"@nl .
+dmnsh:NotDecided a dmn:ComputedCheck ;
+    rdfs:label "Cells outside S-FEEL: not decided"@en , "Cellen buiten S-FEEL: niet bepaald"@nl .

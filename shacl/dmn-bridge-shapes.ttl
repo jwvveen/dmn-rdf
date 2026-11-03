@@ -1,0 +1,71 @@
+@prefix dmn:   <https://w3id.org/dmn#> .
+@prefix dmnsh: <https://w3id.org/dmn/shapes#> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:   <http://purl.org/dc/terms/> .
+
+#################################################################
+# DMN 1.6 in RDF: checks across the notations (warnings and info).
+#
+# Load dmn-bridges.ttl in the data graph. For the ArchiMate bridge also
+# load the ArchiMate ontology, so that a 3.2 type (BusinessProcess) is
+# read as its 4.0 class (Process) through rdfs:subClassOf.
+#################################################################
+
+<https://w3id.org/dmn/shapes/bridges>
+    a owl:Ontology ;
+    rdfs:label "DMN 1.6 in RDF: bridge shapes"@en ;
+    owl:imports <https://w3id.org/dmn/bridges> ;
+    dct:license <https://creativecommons.org/licenses/by/4.0/> ;
+    owl:versionInfo "0.1.0" ;
+    sh:declare [ sh:prefix "dmn" ; sh:namespace "https://w3id.org/dmn#"^^xsd:anyURI ] ,
+               [ sh:prefix "bpmn" ; sh:namespace "https://w3id.org/bpmn#"^^xsd:anyURI ] ,
+               [ sh:prefix "rdfs" ; sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ] .
+
+dmnsh:BridgeRuleShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf dmn:elaborates , dmn:supportedBy ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This link between a DMN element and an ArchiMate element is not one of the permitted bridge rules (dmn-bridges.ttl)."@en ,
+                   "Deze koppeling tussen een DMN-element en een ArchiMate-element staat niet bij de toegestane brugregels (dmn-bridges.ttl)."@nl ,
+                   "Diese Verbindung zwischen einem DMN-Element und einem ArchiMate-Element gehört nicht zu den erlaubten Brückenregeln (dmn-bridges.ttl)."@de ,
+                   "Ce lien entre un élément DMN et un élément ArchiMate ne fait pas partie des règles de pont autorisées (dmn-bridges.ttl)."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes/bridges> ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this ?p ?value .
+                FILTER (?p IN (dmn:elaborates, dmn:supportedBy))
+                $this a ?dt .
+                FILTER (STRSTARTS(STR(?dt), "https://w3id.org/dmn#"))
+                FILTER NOT EXISTS {
+                    ?value a/rdfs:subClassOf* ?at .
+                    ?regel dmn:dmnType ?dt ; dmn:bridgeProperty ?p ; dmn:archimateType ?at ;
+                           dmn:bridgeStatus "permitted" .
+                }
+            }
+        """ ;
+    ] .
+
+dmnsh:UsingTaskShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf dmn:usingTask ;
+    sh:severity sh:Info ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "This decision says a BPMN task uses it, and that task does not say it applies this decision (bpmn:appliesRule)."@en ,
+                   "Deze beslissing zegt dat een BPMN-taak haar gebruikt, en die taak zegt niet dat hij deze beslissing toepast (bpmn:appliesRule)."@nl ,
+                   "Diese Entscheidung gibt an, dass eine BPMN-Aufgabe sie verwendet, und diese Aufgabe gibt nicht an, dass sie diese Entscheidung anwendet (bpmn:appliesRule)."@de ,
+                   "Cette décision indique qu'une tâche BPMN l'utilise, et cette tâche n'indique pas qu'elle applique cette décision (bpmn:appliesRule)."@fr ;
+        sh:prefixes <https://w3id.org/dmn/shapes/bridges> ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this dmn:usingTask ?value .
+                ?value a ?t .
+                FILTER NOT EXISTS { ?value bpmn:appliesRule $this }
+            }
+        """ ;
+    ] .
