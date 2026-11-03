@@ -10,8 +10,8 @@ hangen aan processen, de wet, begrippen en architectuur.
 *English version: [README.md](README.md).*
 
 Status: **0.1.0-concept**. Een discussiestuk, geen standaard; geen publicatie van
-de Object Management Group. Namespace: `https://w3id.org/dmn#` (registratie bij
-w3id.org aangevraagd).
+de Object Management Group. Namespace: `https://w3id.org/dmn#` (registratie aangevraagd in
+[perma-id/w3id.org#7065](https://github.com/perma-id/w3id.org/pull/7065)).
 
 ## In het kort
 

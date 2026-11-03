@@ -11,7 +11,8 @@ connect to processes, the law, concepts and architecture.
 
 Status: **0.1.0-concept**. A discussion piece, not a standard. DMN is a
 specification of the Object Management Group; this is not an OMG publication.
-Namespace: `https://w3id.org/dmn#` (registration at w3id.org requested; until it is
+Namespace: `https://w3id.org/dmn#` (registration requested in
+[perma-id/w3id.org#7065](https://github.com/perma-id/w3id.org/pull/7065); until it is
 merged the IRIs do not resolve yet).
 
 ## Files
