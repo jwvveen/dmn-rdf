@@ -13,13 +13,13 @@ Status: **0.1.0-concept**. A discussion piece, not a standard. DMN is a
 specification of the Object Management Group; this is not an OMG publication.
 Namespace: `https://w3id.org/dmn#` (registration requested in
 [perma-id/w3id.org#7065](https://github.com/perma-id/w3id.org/pull/7065); until it is
-merged the IRIs do not resolve yet).
+merged the IRIs do not resolve yet). Design notes: [DESIGN.md](DESIGN.md).
 
 ## Files
 
 | File | Role |
 |---|---|
-| `dmn.ttl` | **Generated** from OMG's own metamodel (`DMN16.xmi`): 60 classes, 127 properties with domain, range and upper bound, 5 enumerations whose values carry their XML spelling. Ordered properties (rules, clauses, entries) are marked `dmn:ordered`. Nothing is typed by hand except the Dutch labels |
+| `dmn.ttl` | **Generated** from OMG's own metamodel (`DMN16.xmi`): 60 classes, 127 properties with domain, range and upper bound, 5 enumerations whose values carry their XML spelling. Ordered properties (rules, clauses, entries) are marked `dmn:ordered`. Generated from the metamodel, with documented repairs; the extensions are maintained separately (see `DESIGN.md`) |
 | `dmn-matrix.ttl` | **Generated**: the 25 cells of Table 2 (clause 6.2.3), each with what the specification permits, what `DMN16.xsd` and `DMN16.xmi` accept, and the printed cell as provenance; plus the seven hit policies and four aggregations with their properties as data (single hit, rule order matters, overlap allowed, needs output values, compound output allowed) |
 | `dmn-rules.ttl` | **Generated**: 177 normative sentences of clauses 6 to 10, verbatim with clause and page, each with the shape or computed check that tests it (94) or the reason nothing does (83) |
 | `dmn-bridges.ttl` | Bridges to the law (`dmn:legalBasis`), to concepts (`dmn:meaning`) and to ArchiMate 4.0 (`dmn:elaborates`, `dmn:supportedBy`, 23 bridge rules as data). The bridge to BPMN is in the core: `dmn:usingTask` and `dmn:usingProcess` point to `https://w3id.org/bpmn#` |
@@ -32,16 +32,17 @@ merged the IRIs do not resolve yet).
 | `scripts/sfeel.py` | S-FEEL simple unary tests as sets of values (clause 9.2): number, string, boolean, date |
 | `scripts/beslistabel.py` | Overlap, gaps, rules that never apply and values outside the lists, as a SHACL validation report |
 | `validate.py` | Shapes plus computed checks, one report, in English, Dutch, German or French (`scripts/valideer.py`) |
+| `DESIGN.md` | Design notes: standards and entailment, what is generated and what is designed, cardinalities, order, the exact scope of the checker, the corpus, and configuration pitfalls |
 | `sources/` | `dmn-rules.json` (Table 2, hit policies and the 177 sentences, extracted from the PDF) and a survey of earlier work (`prior-work.md`) |
 
 ## What the specification does not say in its machine-readable files
 
-* **The XML schema accepts four requirements that Table 2 forbids.** Table 2 and
+* **The XML schema does not enforce four constraints of Table 2.** Table 2 and
   the text of Table 22 permit an authority requirement from a decision or input
   data only into a knowledge source. `DMN16.xsd` and `DMN16.xmi` let every
   decision, business knowledge model and knowledge source own any of the three
   kinds of authority requirement. So Decision → Decision, Input Data → Decision,
-  Decision → BKM and Input Data → BKM as authority are schema-valid and forbidden;
+  Decision → BKM and Input Data → BKM as authority are schema-valid but not permitted by the text (a schema may enforce less than the text);
   and Decision → Decision is in the schema both information and authority, while
   the text says "the type of the requirement is uniquely determined by the types
   of the two elements connected". `dmn-matrix.ttl` records both readings per cell
@@ -66,9 +67,10 @@ merged the IRIs do not resolve yet).
   property gets `dmn:position`.
 * **FEEL stays text; S-FEEL is computed.** A cell keeps its FEEL text. The
   checker decides what S-FEEL can decide (comparisons, intervals, lists, `not`,
-  `-`) and never gives a false verdict: a cell with a name, a function or full
-  FEEL makes the pairs and gaps it takes part in undecided, and the report says
-  how many cells it left alone.
+  `-`) and reports what it could not analyse: a cell with a name, a function or
+  full FEEL is left out of the overlap test, its table is not searched for gaps,
+  and the report says how many cells were left out. A result without findings is
+  only complete for a table without such cells.
 * **SHACL where SHACL can, a checker where it cannot,** with one report format.
 * **Four languages.** Every message in English, Dutch, German and French.
 
@@ -91,16 +93,16 @@ Expected results on `example.dmn`, eight in total:
 7. **Info** `Gap`: no rule for visitors with a petrol or diesel car.
 8. **Info** `NotDecided`: `> Maximum` names a value that is not known at design time.
 
-Results on real models, 168 files, all converted with nothing left over except vendor extensions:
+Results on 168 example and test models. All converted without errors, with every element and attribute in the DMN namespace mapped and only vendor extensions skipped (a mapping check, not a round-trip test):
 
-* The eight example models that OMG publishes with DMN 1.6: 0 requirement
+* The eight non-normative example models that OMG publishes with DMN 1.6: 0 requirement
   matrix violations; 8 rule annotation clauses without a name (8.3.2 SHALL), all
   in the Chapter 12 example, and 6 decision services without output, encapsulated
   or input decisions (6.3.10) in 3 of the 8 files; 33 uses of `allowedValues`,
   deprecated since DMN 1.5.
-* The 160 models of the DMN TCK: 0 requirement matrix violations; 13 decision
+* 160 models of the DMN TCK (commit 1e34917, October 2026): 0 requirement matrix violations; 13 decision
   services without encapsulated or input decisions (6.3.10 SHALL asks for one of
-  the two, the TCK runs them anyway), 2 complete tables with a default
+  the two), 2 complete tables with a default
   output value (10.3.2.10 SHALL NOT), 1 OUTPUT ORDER table with two outputs,
   17 tables with gaps, and 12 tables with cells outside S-FEEL.
 

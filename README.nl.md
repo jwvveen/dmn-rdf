@@ -12,21 +12,22 @@ hangen aan processen, de wet, begrippen en architectuur.
 Status: **0.1.0-concept**. Een discussiestuk, geen standaard; geen publicatie van
 de Object Management Group. Namespace: `https://w3id.org/dmn#` (registratie aangevraagd in
 [perma-id/w3id.org#7065](https://github.com/perma-id/w3id.org/pull/7065)).
+Ontwerpverantwoording: [DESIGN.md](DESIGN.md).
 
 ## In het kort
 
-* **Het metamodel is data**, gegenereerd uit OMG's `DMN16.xmi`. Drie gebreken in
-  dat bestand zijn zichtbaar gecorrigeerd.
+* **Het metamodel is data**, gegenereerd uit OMG's `DMN16.xmi`, met gedocumenteerde
+  reparaties en apart beheerde uitbreidingen.
 * **Tabel 2 is data**, met per cel wat de specificatie toestaat en wat het
-  XML-schema accepteert. Het schema keurt vier autoriteitsvereisten goed die
-  Tabel 2 verbiedt.
+  XML-schema accepteert. Vier beperkingen uit Tabel 2 dwingt het schema niet af.
 * **177 normatieve zinnen** staan letterlijk in de graaf, elk met de controle die
   ze toetst (94) of de reden waarom niet (83).
 * **Volgorde is data** (`dmn:position`): bij FIRST en RULE ORDER telt de volgorde
   van de regels.
-* **Beslistabellen worden uitgerekend** over hun S-FEEL-cellen: overlap, gaten,
-  regels die nooit gelden, waarden buiten de lijst. Een cel buiten S-FEEL wordt
-  niet beoordeeld, en het rapport zegt dat.
+* **Beslistabellen worden geanalyseerd** voor een gedocumenteerd deel van S-FEEL:
+  overlap, gaten, regels die nooit gelden, waarden buiten de lijst. Een cel daarbuiten
+  wordt als niet geanalyseerd gemeld; een rapport zonder meldingen is dus pas
+  volledig voor een tabel zonder zulke cellen.
 * **Bruggen** naar BPMN (in de kern), de wet (`dmn:legalBasis`), begrippen
   (`dmn:meaning`) en ArchiMate 4.0 (brugregels als data).
 * **Vier talen**: elke melding in het Engels, Nederlands, Duits en Frans.
@@ -39,10 +40,15 @@ python validate.py --lang nl
 python validate.py --lang nl model.dmn
 ```
 
-Het voorbeeld `example.dmn` geeft precies acht meldingen. Op 168 echte modellen
-(de OMG-voorbeelden bij DMN 1.6 en de DMN TCK) geen enkele valse matrixmelding;
+Het voorbeeld `example.dmn` geeft precies acht meldingen. Op 168 voorbeeld- en
+testmodellen (de OMG-voorbeelden bij DMN 1.6 en de DMN TCK) geen enkele valse
+matrixmelding;
 wel naamloze annotatiekolommen in OMG's eigen voorbeeld, beslisservices zonder
 ingesloten of invoerbeslissingen, en volledige tabellen met een standaarduitkomst.
+
+Wat dit niet is: een vervanging van DMN-XML of bestaande engines, een FEEL-engine,
+of bewijs dat een regel juridisch klopt. Het maakt het beslismodel herleidbaar; een
+individuele beslissing verklaren vraagt ook een vastlegging van invoer en modelversie.
 
 ## Licentie
 
